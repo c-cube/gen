@@ -36,3 +36,6 @@ setup.data:
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
 
 # OASIS_STOP
+
+push_doc: all doc
+	scp -r gen.docdir/* cedeela.fr:~/simon/root/software/gen/

@@ -35,7 +35,7 @@ Executable run_tests
   CompiledObject: native
   MainIs: run_tests.ml
   Build$: flag(tests)
-  BuildDepends: gen
+  BuildDepends: gen,oUnit
 
 SourceRepository head
   Type: git
