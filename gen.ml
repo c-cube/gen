@@ -525,7 +525,7 @@ let take_nth n gen =
   let rec next() =
     match gen() with
     | None -> None
-    | (Some _) as res when !i = n -> i:=0; res
+    | (Some _) as res when !i = n -> i:=1; res
     | Some _ -> incr i; next()
   in next
 
