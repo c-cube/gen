@@ -67,10 +67,6 @@ module type S = sig
   val fold : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b
     (** Fold on the generator, tail-recursively *)
 
-  val fold2 : ('c -> 'a -> 'b -> 'c) -> 'c -> 'a t -> 'b t -> 'c
-    (** Fold on the two enums in parallel. Stops once one of the enums
-        is exhausted. *)
-
   val reduce : ('a -> 'a -> 'a) -> 'a t -> 'a
     (** Fold on non-empty sequences (otherwise raise Invalid_argument) *)
 
@@ -82,9 +78,6 @@ module type S = sig
 
   val iteri : (int -> 'a -> unit) -> 'a t -> unit
     (** Iterate on elements with their index in the enum, from 0 *)
-
-  val iter2 : ('a -> 'b -> unit) -> 'a t -> 'b t -> unit
-    (** Iterate on the two sequences. Stops once one of them is exhausted.*)
 
   val length : _ t -> int
     (** Length of an enum (linear time) *)
@@ -100,7 +93,7 @@ module type S = sig
   val flatten : 'a gen t -> 'a t
     (** Flatten the enumeration of generators *)
 
-  val flatMap : ('a -> 'b gen) -> 'a t -> 'b t
+  val flat_map : ('a -> 'b gen) -> 'a t -> 'b t
     (** Monadic bind; each element is transformed to a sub-enum
         which is then iterated on, before the next element is processed,
         and so on. *)
@@ -126,16 +119,16 @@ module type S = sig
   val filter : ('a -> bool) -> 'a t -> 'a t
     (** Filter out elements that do not satisfy the predicate.  *)
 
-  val takeWhile : ('a -> bool) -> 'a t -> 'a t
+  val take_while : ('a -> bool) -> 'a t -> 'a t
     (** Take elements while they satisfy the predicate *)
 
-  val dropWhile : ('a -> bool) -> 'a t -> 'a t
+  val drop_while : ('a -> bool) -> 'a t -> 'a t
     (** Drop elements while they satisfy the predicate *)
 
-  val filterMap : ('a -> 'b option) -> 'a t -> 'b t
-    (** Maps some elements to 'b, drop the other ones *)
+  val filter_map : ('a -> 'b option) -> 'a t -> 'b t
+    (** _maps some elements to 'b, drop the other ones *)
 
-  val zipIndex : 'a t -> (int * 'a) t
+  val zip_index : 'a t -> (int * 'a) t
     (** Zip elements with their index in the enum *)
 
   val unzip : ('a * 'b) t -> 'a t * 'b t
@@ -179,10 +172,13 @@ module type S = sig
   (** {2 Multiple iterators} *)
 
   val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+    (** _map on the two sequences. Stops once one of them is exhausted.*)
 
   val iter2 : ('a -> 'b -> unit) -> 'a t -> 'b t -> unit
+    (** Iterate on the two sequences. Stops once one of them is exhausted.*)
 
   val fold2 : ('acc -> 'a -> 'b -> 'acc) -> 'acc -> 'a t -> 'b t -> 'acc
+    (** Fold the common prefix of the two iterators *)
 
   val for_all2 : ('a -> 'b -> bool) -> 'a t -> 'b t -> bool
     (** Succeeds if all pairs of elements satisfy the predicate.
@@ -192,7 +188,7 @@ module type S = sig
     (** Succeeds if some pair of elements satisfy the predicate.
         Ignores elements of an iterator if the other runs dry. *)
 
-  val zipWith : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val zip_with : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
     (** Combine common part of the enums (stops when one is exhausted) *)
 
   val zip : 'a t -> 'b t -> ('a * 'b) t
@@ -460,7 +456,7 @@ let flatten next_gen =
   in
   next
 
-let flatMap f next_elem =
+let flat_map f next_elem =
   let state = ref Init in
   let rec next() =
     match !state with
@@ -544,7 +540,7 @@ let filter p gen =
         else next ()  (* discard element *)
   in next
 
-let takeWhile p gen =
+let take_while p gen =
   let stop = ref false in
   let rec next () =
     if !stop
@@ -555,15 +551,15 @@ let takeWhile p gen =
     | None -> stop:=true; None
   in next
 
-module DropWhileState = struct
+module Drop_whileState = struct
   type t =
     | Stop
     | Drop
     | Yield
 end
 
-let dropWhile p gen =
-  let open DropWhileState in
+let drop_while p gen =
+  let open Drop_whileState in
   let state = ref Stop in
   let rec next () =
     match !state with
@@ -581,7 +577,7 @@ let dropWhile p gen =
         end
   in next
 
-let filterMap f gen =
+let filter_map f gen =
   (* tailrec *)
   let rec next () =
     match gen() with
@@ -592,7 +588,7 @@ let filterMap f gen =
         | (Some _) as res -> res
   in next
 
-let zipIndex gen =
+let zip_index gen =
   let r = ref ~-1 in
   fun () ->
     match gen() with
@@ -736,7 +732,7 @@ let rec exists2 p e1 e2 =
   | Some x, Some y -> p x y || exists2 p e1 e2
   | _ -> false
 
-let zipWith f a b =
+let zip_with f a b =
   let stop = ref false in
   fun () ->
     if !stop then None
@@ -744,7 +740,7 @@ let zipWith f a b =
     | Some xa, Some xb -> Some (f xa xb)
     | _ -> stop:=true; None
 
-let zip a b = zipWith (fun x y -> x,y) a b
+let zip a b = zip_with (fun x y -> x,y) a b
 
 (** {3 Complex combinators} *)
 
@@ -1215,7 +1211,7 @@ let pp ?(start="") ?(stop="") ?(sep=",") ?(horizontal=false) pp_elem formatter g
 module Infix = struct
   let (--) = int_range
 
-  let (>>=) x f = flatMap f x
+  let (>>=) x f = flat_map f x
 end
 
 include Infix
@@ -1272,11 +1268,12 @@ module Restart = struct
 
   let flatten e () = flatten (e ())
 
-  let flatMap f e () = flatMap f (e ())
+  let flat_map f e () = flat_map f (e ())
 
   let mem ?eq x e = mem ?eq x (e ())
 
   let take n e () = take n (e ())
+
 
   let drop n e () = drop n (e ())
 
@@ -1286,17 +1283,17 @@ module Restart = struct
 
   let filter p e () = filter p (e ())
 
-  let takeWhile p e () = takeWhile p (e ())
+  let take_while p e () = take_while p (e ())
 
-  let dropWhile p e () = dropWhile p (e ())
+  let drop_while p e () = drop_while p (e ())
 
-  let filterMap f e () = filterMap f (e ())
+  let filter_map f e () = filter_map f (e ())
 
-  let zipWith f e1 e2 () = zipWith f (e1 ()) (e2 ())
+  let zip_with f e1 e2 () = zip_with f (e1 ()) (e2 ())
 
   let zip e1 e2 () = zip (e1 ()) (e2 ())
 
-  let zipIndex e () = zipIndex (e ())
+  let zip_index e () = zip_index (e ())
 
   let unzip e = map fst e, map snd e
 
@@ -1390,7 +1387,7 @@ module Restart = struct
   module Infix = struct
     let (--) = int_range
 
-    let (>>=) x f = flatMap f x
+    let (>>=) x f = flat_map f x
   end
 
   include Infix
