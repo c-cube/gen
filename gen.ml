@@ -1112,10 +1112,10 @@ let chunks n e =
     | None -> None
     | Some x ->
         let a = Array.make n x in
-        fill a (n-1)
+        fill a 1
 
   and fill a i =
-    (* fill the array. [i] elements remain to fill *)
+    (* fill the array. [i]: current index to fill *)
     if i = n
     then Some a
     else match e() with

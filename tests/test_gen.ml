@@ -48,20 +48,20 @@ let test_append () =
   OUnit.assert_equal [10;9;8;7;6;5;4;3;2;1] (Gen.to_rev_list e);
   ()
 
-let test_flatMap () =
+let test_flat_map () =
   let e = 1 -- 3 in
   let e' = e >>= (fun x -> x -- (x+1)) in
   OUnit.assert_equal [1;2;2;3;3;4] (Gen.to_list e');
   ()
 
 let test_zip () =
-  let e = Gen.zipWith (+) (Gen.repeat 1) (4--7) in
+  let e = Gen.zip_with (+) (Gen.repeat 1) (4--7) in
   OUnit.assert_equal [5;6;7;8] (Gen.to_list e);
   ()
 
-let test_filterMap () =
+let test_filter_map () =
   let f x = if x mod 2 = 0 then Some (string_of_int x) else None in
-  let e = Gen.filterMap f (1 -- 10) in
+  let e = Gen.filter_map f (1 -- 10) in
   OUnit.assert_equal ["2"; "4"; "6"; "8"; "10"] (Gen.to_list e);
   ()
 
@@ -129,9 +129,9 @@ let suite =
       "test_iter" >:: test_iter;
       "test_map" >:: test_map;
       "test_append" >:: test_append;
-      "test_flatMap" >:: test_flatMap;
+      "test_flat_map" >:: test_flat_map;
       "test_zip" >:: test_zip;
-      "test_filterMap" >:: test_filterMap;
+      "test_filter_map" >:: test_filter_map;
       "test_merge" >:: test_merge;
       "test_persistent" >:: test_persistent;
       "test_round_robin" >:: test_round_robin;
