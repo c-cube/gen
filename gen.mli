@@ -127,6 +127,11 @@ module type S = sig
     (** n-th element, or Not_found
         @raise Not_found if the generator contains less than [n] arguments *)
 
+  val take_nth : int -> 'a t -> 'a t
+    (** [take_nth n g] returns every element of [g] whose index
+        is a multiple of [n]. For instance [take_nth 2 (1--10) |> to_list]
+        will return [1;3;5;7;9] *)
+
   val filter : ('a -> bool) -> 'a t -> 'a t
     (** Filter out elements that do not satisfy the predicate.  *)
 

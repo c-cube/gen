@@ -118,6 +118,11 @@ module type S = sig
     (** n-th element, or Not_found
         @raise Not_found if the generator contains less than [n] arguments *)
 
+  val take_nth : int -> 'a t -> 'a t
+    (** [take_nth n g] returns every element of [g] whose index
+        is a multiple of [n]. For instance [take_nth 2 (1--10) |> to_list]
+        will return [1;3;5;7;9] *)
+
   val filter : ('a -> bool) -> 'a t -> 'a t
     (** Filter out elements that do not satisfy the predicate.  *)
 
@@ -517,6 +522,16 @@ let nth n gen =
   match gen () with
   | None -> raise Not_found
   | Some x -> x
+
+let take_nth n gen =
+  assert (n>=1);
+  let i = ref n in
+  let rec next() =
+    match gen() with
+    | None -> None
+    | (Some _) as res when !i = n -> i:=0; res
+    | Some _ -> incr i; next()
+  in next
 
 let filter p gen =
   let rec next () =
@@ -1266,6 +1281,8 @@ module Restart = struct
   let drop n e () = drop n (e ())
 
   let nth n e = nth n (e ())
+
+  let take_nth n e () = take_nth n (e ())
 
   let filter p e () = filter p (e ())
 
