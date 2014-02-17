@@ -68,12 +68,17 @@ let bench_current n =
   done
 
 let () =
-  let n = 100_000 in
-  let res = Benchmark.throughputN 5
-    [ "mlist", bench_mlist, n
-    ; "naive", bench_naive, n
-    ; "current", bench_current, n
-    ]
-  in Benchmark.tabulate res
+  let bench_n n = 
+    Printf.printf "BENCH for %d\n" n;
+    let res = Benchmark.throughputN 5
+      [ "mlist", bench_mlist, n
+      ; "naive", bench_naive, n
+      ; "current", bench_current, n
+      ]
+    in Benchmark.tabulate res
+  in
+  bench_n 100;
+  bench_n 100_000;
+  ()
 
 (* vim:Use benchmark: *)
