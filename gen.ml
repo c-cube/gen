@@ -1404,31 +1404,29 @@ let start g = g ()
 module MList = struct
   type 'a node =
     | Nil
-    | Partial of 'a array * int
-    | Cons of 'a array * 'a node ref
+    | Cons of 'a array * int ref * 'a node ref
 
   let of_gen gen =
     let start = ref Nil in
-    let chunk_size = ref 16 in
+    let chunk_size = ref 8 in
+    (* fill the list. prev: tail-reference from previous node,
+     * cur: current list node *)
     let rec fill prev cur =
       match cur, gen() with
-      | Partial (a,n), None ->
-          prev := Cons (Array.sub a 0 n, ref Nil); ()  (* done *)
       | _, None -> prev := cur; ()  (* done *)
       | Nil, Some x ->
           let n = !chunk_size in
           if n < 4096 then chunk_size := 2 * !chunk_size;
-          fill prev (Partial (Array.make n x, 1))
-      | Partial (a, n), Some x ->
-          assert (n < Array.length a);
-          a.(n) <- x;
-          if n+1 = Array.length a
+          fill prev (Cons (Array.make n x, ref 1, ref Nil))
+      | Cons (a, n, next), Some x ->
+          assert (!n < Array.length a);
+          a.(!n) <- x;
+          incr n;
+          if !n = Array.length a
           then begin
-            let r = ref Nil in
-            prev := Cons(a, r);
-            fill r Nil
-          end else fill prev (Partial (a, n+1))
-      | Cons _, _ -> assert false
+            prev := cur;
+            fill next Nil
+          end else fill prev cur 
     in
     fill start !start ;
     !start
@@ -1438,8 +1436,8 @@ module MList = struct
     let i = ref 0 in
     let rec next() = match !cur with
     | Nil -> None
-    | Cons (a,l') ->
-        if !i = Array.length a
+    | Cons (a,n,l') ->
+        if !i = !n
         then begin
           cur := !l';
           i := 0;
@@ -1449,7 +1447,6 @@ module MList = struct
           incr i;
           Some y
         end
-    | Partial _ -> assert false
     in
     next
 end

@@ -54,6 +54,71 @@ let bench_mlist n =
     ()
   done
 
+(** {6 Unrolled mutable list} *)
+module UnrolledList = struct
+  type 'a node =
+    | Nil
+    | Partial of 'a array * int
+    | Cons of 'a array * 'a node ref
+
+  let of_gen gen =
+    let start = ref Nil in
+    let chunk_size = ref 16 in
+    let rec fill prev cur =
+      match cur, gen() with
+      | Partial (a,n), None ->
+          prev := Cons (Array.sub a 0 n, ref Nil); ()  (* done *)
+      | _, None -> prev := cur; ()  (* done *)
+      | Nil, Some x ->
+          let n = !chunk_size in
+          if n < 4096 then chunk_size := 2 * !chunk_size;
+          fill prev (Partial (Array.make n x, 1))
+      | Partial (a, n), Some x ->
+          assert (n < Array.length a);
+          a.(n) <- x;
+          if n+1 = Array.length a
+          then begin
+            let r = ref Nil in
+            prev := Cons(a, r);
+            fill r Nil
+          end else fill prev (Partial (a, n+1))
+      | Cons _, _ -> assert false
+    in
+    fill start !start ;
+    !start
+
+  let to_gen l () =
+    let cur = ref l in
+    let i = ref 0 in
+    let rec next() = match !cur with
+    | Nil -> None
+    | Cons (a,l') ->
+        if !i = Array.length a
+        then begin
+          cur := !l';
+          i := 0;
+          next()
+        end else begin
+          let y = a.(!i) in
+          incr i;
+          Some y
+        end
+    | Partial _ -> assert false
+    in
+    next
+end
+
+(** Store content of the generator in an enum *)
+let persistent_unrolled gen =
+  let l = UnrolledList.of_gen gen in
+  UnrolledList.to_gen l
+
+let bench_unrolled n =
+  for i = 0 to 100 do
+    let _ = persistent_unrolled Gen.(1 -- n) in
+    ()
+  done
+
 let bench_naive n =
   for i = 0 to 100 do
     let l = Gen.to_rev_list Gen.(1 -- n) in
@@ -73,6 +138,7 @@ let () =
     let res = Benchmark.throughputN 5
       [ "mlist", bench_mlist, n
       ; "naive", bench_naive, n
+      ; "unrolled", bench_unrolled, n
       ; "current", bench_current, n
       ]
     in Benchmark.tabulate res
