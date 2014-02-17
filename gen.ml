@@ -1400,53 +1400,61 @@ end
 
 let start g = g ()
 
-(** {4 Mutable double-linked list, similar to {! Deque.t} *)
+(** {6 Unrolled mutable list} *)
 module MList = struct
-  type 'a t = 'a node option ref
-  and 'a node = {
-    content : 'a;
-    mutable prev : 'a node;
-    mutable next : 'a node;
-  }
+  type 'a node =
+    | Nil
+    | Partial of 'a array * int
+    | Cons of 'a array * 'a node ref
 
-  let create () = ref None
+  let of_gen gen =
+    let start = ref Nil in
+    let chunk_size = ref 16 in
+    let rec fill prev cur =
+      match cur, gen() with
+      | Partial (a,n), None ->
+          prev := Cons (Array.sub a 0 n, ref Nil); ()  (* done *)
+      | _, None -> prev := cur; ()  (* done *)
+      | Nil, Some x ->
+          let n = !chunk_size in
+          if n < 4096 then chunk_size := 2 * !chunk_size;
+          fill prev (Partial (Array.make n x, 1))
+      | Partial (a, n), Some x ->
+          assert (n < Array.length a);
+          a.(n) <- x;
+          if n+1 = Array.length a
+          then begin
+            let r = ref Nil in
+            prev := Cons(a, r);
+            fill r Nil
+          end else fill prev (Partial (a, n+1))
+      | Cons _, _ -> assert false
+    in
+    fill start !start ;
+    !start
 
-  let is_empty d =
-    match !d with
-    | None -> true
-    | Some _ -> false
-
-  let push_back d x =
-    match !d with
-    | None ->
-      let rec elt = {
-        content = x; prev = elt; next = elt; } in
-      d := Some elt
-    | Some first ->
-      let elt = { content = x; next=first; prev=first.prev; } in
-      first.prev.next <- elt;
-      first.prev <- elt
-
-  (* conversion to enum *)
-  let to_enum d =
-    fun () ->
-      match !d with
-      | None -> (fun () -> None)
-      | Some first ->
-        let cur = ref first in (* current element of the list *)
-        let stop = ref false in (* are we done yet? *)
-        fun () ->
-          if !stop then None
-          else begin
-            let x = (!cur).content in
-            cur := (!cur).next;
-            (if !cur == first then stop := true); (* EOG, we made a full cycle *)
-            Some x
-          end
+  let to_gen l () =
+    let cur = ref l in
+    let i = ref 0 in
+    let rec next() = match !cur with
+    | Nil -> None
+    | Cons (a,l') ->
+        if !i = Array.length a
+        then begin
+          cur := !l';
+          i := 0;
+          next()
+        end else begin
+          let y = a.(!i) in
+          incr i;
+          Some y
+        end
+    | Partial _ -> assert false
+    in
+    next
 end
 
 (** Store content of the generator in an enum *)
 let persistent gen =
-  let l = MList.create () in
-  iter (MList.push_back l) gen;
-  MList.to_enum l
+  let l = MList.of_gen gen in
+  MList.to_gen l
