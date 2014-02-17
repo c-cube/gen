@@ -26,3 +26,4 @@
 <bench/*.ml{,i}>: use_gen
 <bench/*.ml{,i}>: pkg_benchmark
 # OASIS_STOP
+"_qtest": not_hygienic
