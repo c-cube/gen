@@ -10,6 +10,10 @@ BuildTools:  ocamlbuild
 
 Synopsis:    Simple, efficient iterators for OCaml
 
+Flag "bench"
+  Description: build benchmark
+  Default: false
+
 Library "gen"
   Path:             .
   Pack:             false
@@ -35,6 +39,14 @@ Executable run_tests
   MainIs: run_tests.ml
   Build$: flag(tests)
   BuildDepends: gen,oUnit
+
+Executable bench_persistent
+  Path: bench/
+  Install: false
+  CompiledObject: native
+  MainIs: bench_persistent.ml
+  Build$: flag(bench)
+  BuildDepends: gen,benchmark
 
 SourceRepository head
   Type: git
