@@ -27,3 +27,4 @@
 <bench/*.ml{,i}>: pkg_benchmark
 # OASIS_STOP
 "_qtest": not_hygienic
+<**/*.ml>: warn_K, warn_Y, warn_X

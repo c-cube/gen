@@ -49,7 +49,7 @@ let persistent_mlist gen =
   MList.to_gen l
 
 let bench_mlist n =
-  for i = 0 to 100 do
+  for _i = 0 to 100 do
     let _ = persistent_mlist Gen.(1 -- n) in
     ()
   done
@@ -114,20 +114,20 @@ let persistent_unrolled gen =
   UnrolledList.to_gen l
 
 let bench_unrolled n =
-  for i = 0 to 100 do
+  for _i = 0 to 100 do
     let _ = persistent_unrolled Gen.(1 -- n) in
     ()
   done
 
 let bench_naive n =
-  for i = 0 to 100 do
+  for _i = 0 to 100 do
     let l = Gen.to_rev_list Gen.(1 -- n) in
     let _ = Gen.Restart.of_list (List.rev l) in
     ()
   done
 
 let bench_current n =
-  for i = 0 to 100 do
+  for _i = 0 to 100 do
     let _ = Gen.persistent Gen.(1 -- n) in
     ()
   done

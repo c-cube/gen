@@ -172,7 +172,7 @@ module type S = sig
   (** {2 Multiple iterators} *)
 
   val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
-    (** _map on the two sequences. Stops once one of them is exhausted.*)
+    (** map on the two sequences. Stops once one of them is exhausted.*)
 
   val iter2 : ('a -> 'b -> unit) -> 'a t -> 'b t -> unit
     (** Iterate on the two sequences. Stops once one of them is exhausted.*)
@@ -327,7 +327,7 @@ let singleton x =
   singleton "foo" |> to_list = ["foo"]
 *)
 
-let rec repeat x () = Some x
+let repeat x () = Some x
 
 (*$T repeat
   repeat 42 |> take 3 |> to_list = [42; 42; 42]
@@ -470,15 +470,6 @@ let scan f acc g =
 (*$T scan
   scan (fun acc x -> x+1::acc) [] (1--5) |> to_list \
     = [[]; [2]; [3;2]; [4;3;2]; [5;4;3;2]; [6;5;4;3;2]]
-*)
-
-let rec iter2 f gen1 gen2 =
-  match gen1(), gen2() with
-  | Some x, Some y -> f x y; iter2 f gen1 gen2
-  | _ -> ()
-
-(*$T iter2
-  let r = ref 0 in iter2 (fun _ _ -> incr r) (1--10) (4--6); !r = 3
 *)
 
 (** {3 Lazy} *)
@@ -646,20 +637,19 @@ let filter p gen =
 
 let take_while p gen =
   let stop = ref false in
-  let rec next () =
+  fun () ->
     if !stop
     then None
     else match gen() with
     | (Some x) as res ->
         if p x then res else (stop := true; None)
     | None -> stop:=true; None
-  in next
 
 (*$T
   take_while (fun x ->x<10) (1--1000) |> eq (1--9)
 *)
 
-module Drop_whileState = struct
+module DropWhileState = struct
   type t =
     | Stop
     | Drop
@@ -667,7 +657,7 @@ module Drop_whileState = struct
 end
 
 let drop_while p gen =
-  let open Drop_whileState in
+  let open DropWhileState in
   let state = ref Drop in
   let rec next () =
     match !state with
@@ -888,6 +878,10 @@ let rec iter2 f e1 e2 =
   match e1(), e2() with
   | Some x, Some y -> f x y; iter2 f e1 e2
   | _ -> ()
+
+(*$T iter2
+  let r = ref 0 in iter2 (fun _ _ -> incr r) (1--10) (4--6); !r = 3
+*)
 
 let rec fold2 f acc e1 e2 =
   match e1(), e2() with
@@ -1493,8 +1487,6 @@ module Restart = struct
 
   let repeat x () = repeat x
 
-  let repeatedly f () = repeatedly f
-
   let unfold f acc () = unfold f acc 
 
   let init ?limit f () = init ?limit f
@@ -1534,7 +1526,6 @@ module Restart = struct
   let mem ?eq x e = mem ?eq x (e ())
 
   let take n e () = take n (e ())
-
 
   let drop n e () = drop n (e ())
 
