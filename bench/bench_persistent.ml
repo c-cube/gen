@@ -1,3 +1,8 @@
+
+let _sum g =
+  Gen.Restart.fold (+) 0 g
+
+
 module MList = struct
   type 'a t = 'a node option ref
   and 'a node = {
@@ -50,8 +55,8 @@ let persistent_mlist gen =
 
 let bench_mlist n =
   for _i = 0 to 100 do
-    let _ = persistent_mlist Gen.(1 -- n) in
-    ()
+    let g = persistent_mlist Gen.(1 -- n) in
+    ignore (_sum g)
   done
 
 (** {6 Unrolled mutable list} *)
@@ -115,21 +120,27 @@ let persistent_unrolled gen =
 
 let bench_unrolled n =
   for _i = 0 to 100 do
-    let _ = persistent_unrolled Gen.(1 -- n) in
-    ()
+    let g = persistent_unrolled Gen.(1 -- n) in
+    ignore (_sum g)
   done
 
 let bench_naive n =
   for _i = 0 to 100 do
     let l = Gen.to_rev_list Gen.(1 -- n) in
-    let _ = Gen.Restart.of_list (List.rev l) in
-    ()
+    let g = Gen.Restart.of_list (List.rev l) in
+    ignore (_sum g)
   done
 
 let bench_current n =
   for _i = 0 to 100 do
-    let _ = Gen.persistent Gen.(1 -- n) in
-    ()
+    let g = Gen.persistent Gen.(1 -- n) in
+    ignore (_sum g)
+  done
+
+let bench_current_lazy n =
+  for _i = 0 to 100 do
+    let g = Gen.persistent_lazy Gen.(1 -- n) in
+    ignore (_sum g)
   done
 
 let () =
@@ -140,6 +151,7 @@ let () =
       ; "naive", bench_naive, n
       ; "unrolled", bench_unrolled, n
       ; "current", bench_current, n
+      ; "current_lazy", bench_current_lazy, n
       ]
     in Benchmark.tabulate res
   in
@@ -147,4 +159,3 @@ let () =
   bench_n 100_000;
   ()
 
-(* vim:Use benchmark: *)

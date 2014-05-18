@@ -1657,41 +1657,77 @@ module MList = struct
   type 'a node =
     | Nil
     | Cons of 'a array * int ref * 'a node ref
+    | Suspend of 'a gen
 
+  type 'a t = {
+    start : 'a node ref; (* first node. *)
+    mutable chunk_size : int;
+    max_chunk_size : int;
+  }
+
+  let _make ~max_chunk_size gen = {
+    start = ref (Suspend gen);
+    chunk_size = 8;
+    max_chunk_size;
+  }
+
+  (* increment the size of chunks *)
+  let _incr_chunk_size mlist =
+    if mlist.chunk_size < mlist.max_chunk_size
+      then mlist.chunk_size <- 2 * mlist.chunk_size
+
+  (* read one chunk of input; return the corresponding node.
+    will potentially change [mlist.chunk_size]. *)
+  let _read_chunk mlist gen =
+    match gen() with
+    | None -> Nil  (* done *)
+    | Some x ->
+      (* new list node *)
+        let r = ref 1 in
+        let a = Array.make mlist.chunk_size x in
+        let tail = ref (Suspend gen) in
+        let stop = ref false in
+        let node = Cons (a, r, tail) in
+        (* read the rest of the chunk *)
+        while not !stop && !r < mlist.chunk_size do
+          match gen() with
+          | None ->
+              tail := Nil;
+              stop := true
+          | Some x ->
+              a.(!r) <- x;
+              incr r;
+        done;
+        _incr_chunk_size mlist;
+        node
+
+  (* eager construction *)
   let of_gen gen =
-    let start = ref Nil in
-    let chunk_size = ref 8 in
-    (* fill the list. prev: tail-reference from previous node,
-     * cur: current list node *)
-    let rec fill prev cur =
-      match cur, gen() with
-      | _, None -> prev := cur; ()  (* done *)
-      | Nil, Some x ->
-          let n = !chunk_size in
-          if n < 4096 then chunk_size := 2 * !chunk_size;
-          fill prev (Cons (Array.make n x, ref 1, ref Nil))
-      | Cons (a, n, next), Some x ->
-          assert (!n < Array.length a);
-          a.(!n) <- x;
-          incr n;
-          if !n = Array.length a
-          then begin
-            prev := cur;
-            fill next Nil
-          end else fill prev cur 
+    let mlist = _make ~max_chunk_size:4096 gen in
+    let rec _fill prev = match _read_chunk mlist gen with
+      | Nil -> prev := Nil
+      | Suspend _ -> assert false
+      | Cons (_, _, prev') as node ->
+          prev := node;
+          _fill prev'
     in
-    fill start !start ;
-    !start
+    _fill mlist.start;
+    mlist
+
+  (* lazy construction *)
+  let of_gen_lazy gen =
+    let mlist = _make ~max_chunk_size:32 gen in
+    mlist
 
   let to_gen l () =
-    let cur = ref l in
+    let cur = ref l.start in
     let i = ref 0 in
-    let rec next() = match !cur with
+    let rec next() = match ! !cur with
     | Nil -> None
     | Cons (a,n,l') ->
         if !i = !n
         then begin
-          cur := !l';
+          cur := l';
           i := 0;
           next()
         end else begin
@@ -1699,6 +1735,10 @@ module MList = struct
           incr i;
           Some y
         end
+    | Suspend gen ->
+        let node = _read_chunk l gen in
+        !cur := node;
+        next()
     in
     next
 end
@@ -1713,4 +1753,14 @@ let persistent gen =
     Restart.to_list g' = Restart.to_list g'
   let g = 1--10 in let g' = persistent g in \
     Restart.to_list g' = [1;2;3;4;5;6;7;8;9;10]
+*)
+
+let persistent_lazy gen =
+  let l = MList.of_gen_lazy gen in
+  MList.to_gen l
+
+(*$T
+  let g = 1--1_000_000_000 in let g' = persistent_lazy g in \
+    (g' () |> take 100 |> to_list = (1--100 |> to_list)) && \
+    (g' () |> take 200 |> to_list = (1--200 |> to_list))
 *)

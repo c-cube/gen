@@ -371,6 +371,11 @@ val persistent : 'a t -> 'a Restart.t
       on it several times later. If possible, consider using combinators
       from {!Restart} directly instead. *)
 
+val persistent_lazy : 'a t -> 'a Restart.t
+  (** Same as {!persistent}, but consumes the generator on demand (by chunks).
+      This allows to make a restartable generator out of an ephemeral one,
+      without paying a big cost upfront (nor even consuming it fully). *)
+
 val start : 'a Restart.t -> 'a t
   (** Create a new transient generator.
       [start gen] is the same as [gen ()] but is included for readability. *)
