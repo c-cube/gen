@@ -78,25 +78,27 @@ module type S = sig
   (** {2 Basic combinators} *)
 
   val is_empty : _ t -> bool
-    (** Check whether the enum is empty. *)
+    (** Check whether the enum is empty. Pops an element, if any *)
 
   val fold : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b
-    (** Fold on the generator, tail-recursively *)
+    (** Fold on the generator, tail-recursively. Consumes the generator. *)
 
   val reduce : ('a -> 'a -> 'a) -> 'a t -> 'a
-    (** Fold on non-empty sequences (otherwise raise Invalid_argument) *)
+    (** Fold on non-empty sequences. Consumes the generator.
+        @raise Invalid_argument on an empty gen *)
 
   val scan : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b t
-    (** Like {!fold}, but keeping successive values of the accumulator *)
+    (** Like {!fold}, but keeping successive values of the accumulator.
+        Consumes the generator. *)
 
   val iter : ('a -> unit) -> 'a t -> unit
-    (** Iterate on the enum *)
+    (** Iterate on the enum, consumes it. *)
 
   val iteri : (int -> 'a -> unit) -> 'a t -> unit
-    (** Iterate on elements with their index in the enum, from 0 *)
+    (** Iterate on elements with their index in the enum, from 0, consuming it. *)
 
   val length : _ t -> int
-    (** Length of an enum (linear time) *)
+    (** Length of an enum (linear time), consuming it *)
 
   val map : ('a -> 'b) -> 'a t -> 'b t
     (** Lazy map. No iteration is performed now, the function will be called
