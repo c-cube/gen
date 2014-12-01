@@ -7,18 +7,21 @@ module GR = Gen.Restart
 let pint i = string_of_int i
 let pilist l =
   let b = Buffer.create 15 in
-  Format.bprintf b "%a"
+  let fmt = Format.formatter_of_buffer b in
+  Format.fprintf fmt "%a@?"
     (Gen.pp Format.pp_print_int) (Gen.of_list l);
   Buffer.contents b
 let pi2list l =
   let b = Buffer.create 15 in
-  Format.bprintf b "%a"
+  let fmt = Format.formatter_of_buffer b in
+  Format.fprintf fmt "%a@?"
     (Gen.pp (fun fmt (a,b) -> Format.fprintf fmt "%d,%d" a b))
     (Gen.of_list l);
   Buffer.contents b
 let pstrlist l =
   let b = Buffer.create 15 in
-  Format.bprintf b "%a"
+  let fmt = Format.formatter_of_buffer b in
+  Format.fprintf fmt "%a@?"
     (Gen.pp Format.pp_print_string) (Gen.of_list l);
   Buffer.contents b
 
