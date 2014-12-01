@@ -50,3 +50,10 @@ qtest-gen:
 test-all:
 	./run_tests.native
 	./run_qtest.native
+
+VERSION=$(shell awk '/^Version:/ {print $$2}' _oasis)
+
+update_next_tag:
+	@echo "update version to $(VERSION)..."
+	sed -i "s/NEXT_VERSION/$(VERSION)/g" *.ml *.mli
+	sed -i "s/NEXT_RELEASE/$(VERSION)/g" *.ml *.mli

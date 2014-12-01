@@ -77,7 +77,7 @@ module type S = sig
     (** A mix of {!unfold} and {!scan}. The current state is combined with
         the current element to produce a new state, and an output value
         of type 'c.
-        @since NEXT_RELEASE *)
+        @since 0.2.2 *)
 
   val iter : ('a -> unit) -> 'a t -> unit
     (** Iterate on the enum, consumes it. *)
@@ -262,19 +262,19 @@ module type S = sig
 
   val permutations : 'a t -> 'a list t
     (** Permutations of the enum.
-        @since NEXT_RELEASE *)
+        @since 0.2.2 *)
 
   val combinations : int -> 'a t -> 'a list t
     (** Combinations of given length. The ordering of the elements within
         each combination is unspecified.
         Example (ignoring ordering):
           [combinations 2 (1--3) |> to_list = [[1;2]; [1;3]; [2;3]]]
-        @since NEXT_RELEASE *)
+        @since 0.2.2 *)
 
   val power_set : 'a t -> 'a list t
     (** All subsets of the enum (in no particular order). The ordering of
         the elements within each subset is unspecified.
-        @since NEXT_RELEASE *)
+        @since 0.2.2 *)
 
   (** {2 Basic conversion functions} *)
 
