@@ -1112,17 +1112,68 @@ let chunks n e =
 *)
 
 let permutations g =
+  let l = fold (fun acc x->x::acc) [] g in
+  (* choose a first element within [among]. [leftovers] is a set of
+    values to belong to the result, but not to choose the first element from. *)
+  let rec choose_first among leftovers = match among with
+    | [] -> singleton []
+    | [x] -> perms_starting_with x leftovers
+    | x::among' ->
+        append
+          (perms_starting_with x (among' @ leftovers))
+          (choose_first among' (x::leftovers))
+  (* add [x] as head to every element of permutations of [l] *)
+  and perms_starting_with x l =
+    map (fun l -> x::l) (choose_first l [])
+  in
+  choose_first l []
 
+(*$T permutations
+  permutations (1--3) |> to_list |> List.sort Pervasives.compare = \
+    [[1;2;3]; [1;3;2]; [2;1;3]; [2;3;1]; [3;1;2]; [3;2;1]]
+  permutations empty |> to_list = [[]]
+  permutations (singleton 1) |> to_list = [[1]]
+*)
 
-  failwith "not implemented" (* TODO *)
-
-(*
-let combinations n enum =
+let combinations n g =
   assert (n >= 0);
-  failwith "not implemented" (* TODO *)
+  let l = fold (fun acc x->x::acc) [] g in
+  (* combinations of n elements from l *)
+  let rec make n l = match n, l with
+    | 0, _ -> singleton []
+    | _, [] -> empty
+    | _, x::tail ->
+        append (make n tail) (map (fun l->x::l) (make (n-1) tail))
+  in
+  if n>List.length l
+    then empty
+    else make n l
 
-let powerSet enum =
-  failwith "not implemented"
+(*$T
+  combinations 2 (1--4) |> map (List.sort Pervasives.compare) \
+    |> to_list |> List.sort Pervasives.compare = \
+    [[1;2]; [1;3]; [1;4]; [2;3]; [2;4]; [3;4]]
+  combinations 0 (1--4) |> to_list = [[]]
+  combinations 1 (singleton 1) |> to_list = [[1]]
+*)
+
+
+let power_set g =
+  let l = fold (fun acc x->x::acc) [] g in
+  let rec make l = match l with
+    | [] -> singleton []
+    | x::l' ->
+        (* careful: must not use a single [make l'] twice *)
+        append (make l') (map (fun l->x::l) (make l'))
+  in make l
+
+(*$T
+  power_set (1--3) |> map (List.sort Pervasives.compare) \
+    |> to_list |> List.sort Pervasives.compare = \
+    [[]; [1]; [1;2]; [1;2;3]; [1;3]; [2]; [2;3]; [3]]
+  power_set empty |> to_list = [[]]
+  power_set (singleton 1) |> map (List.sort Pervasives.compare) \
+    |> to_list |> List.sort Pervasives.compare = [[]; [1]]
 *)
 
 (** {3 Conversion} *)
@@ -1368,6 +1419,12 @@ module Restart = struct
     uniq ~eq:(fun x y -> cmp x y = 0) e'
 
   let chunks n e () = chunks n (e())
+
+  let permutations g () = permutations (g ())
+
+  let combinations n g () = combinations n (g())
+
+  let power_set g () = power_set (g())
 
   let of_list l () = of_list l
 

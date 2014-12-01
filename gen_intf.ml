@@ -260,17 +260,21 @@ module type S = sig
         of successive elements of [e]. The last array may be smaller
         than [n] *)
 
-  (* TODO later
-  val permutations : 'a t -> 'a gen t
-    (** Permutations of the enum. Each permutation becomes unavailable once
-        the next one is produced. *)
+  val permutations : 'a t -> 'a list t
+    (** Permutations of the enum.
+        @since NEXT_RELEASE *)
 
-  val combinations : int -> 'a t -> 'a t t
-    (** Combinations of given length. *)
+  val combinations : int -> 'a t -> 'a list t
+    (** Combinations of given length. The ordering of the elements within
+        each combination is unspecified.
+        Example (ignoring ordering):
+          [combinations 2 (1--3) |> to_list = [[1;2]; [1;3]; [2;3]]]
+        @since NEXT_RELEASE *)
 
-  val powerSet : 'a t -> 'a t t
-    (** All subsets of the enum (in no particular order) *)
-  *)
+  val power_set : 'a t -> 'a list t
+    (** All subsets of the enum (in no particular order). The ordering of
+        the elements within each subset is unspecified.
+        @since NEXT_RELEASE *)
 
   (** {2 Basic conversion functions} *)
 
