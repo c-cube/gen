@@ -8,4 +8,4 @@ TAGS
 *.docdir
 setup.log
 setup.data
-_qtest
+qtest

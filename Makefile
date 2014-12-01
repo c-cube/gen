@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7b2408909643717852b95f994b273fee)
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
 SETUP = ocaml setup.ml
 
@@ -33,6 +33,9 @@ distclean:
 setup.data:
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
+configure:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
 
 # OASIS_STOP
@@ -40,9 +43,10 @@ setup.data:
 push_doc: all doc
 	scp -r gen.docdir/* cedeela.fr:~/simon/root/software/gen/
 
-qtest: all
-	mkdir -p _qtest
-	qtest extract gen.ml > _qtest/run_qtest.ml
-	ocamlfind ocamlopt -package oUnit,QTest2Lib -linkpkg -I _build gen.cmx \
-	    _qtest/run_qtest.ml -o _qtest/run_qtest
-	./_qtest/run_qtest
+qtest-gen:
+	mkdir -p qtest
+	qtest extract gen.ml > qtest/run_qtest.ml
+
+test-all:
+	./run_tests.native
+	./run_qtest.native

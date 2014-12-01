@@ -17,7 +17,7 @@ Flag "bench"
 Library "gen"
   Path:             .
   Pack:             false
-  Modules:          Gen
+  Modules:          Gen, Gen_intf
 
 Document gen
   Title:                Containers docs
@@ -27,10 +27,7 @@ Document gen
   XOCamlbuildPath:      .
   XOCamlbuildLibraries: gen
 
-Test all
-  Command: $run_tests
-  TestTools: run_tests
-  Run$: flag(tests)
+PreBuildCommand: make qtest-gen
 
 Executable run_tests
   Path: tests/
@@ -38,7 +35,21 @@ Executable run_tests
   CompiledObject: native
   MainIs: run_tests.ml
   Build$: flag(tests)
-  BuildDepends: gen,oUnit,qtest
+  BuildDepends: gen,oUnit
+
+Executable run_qtest
+  Path:             qtest/
+  Install:          false
+  CompiledObject:   native
+  MainIs:           run_qtest.ml
+  Build$:           flag(tests)
+  BuildDepends:     containers, containers.misc, containers.string,
+                    oUnit, QTest2Lib
+
+Test all
+  Command: make test-all
+  TestTools: run_tests, run_qtest
+  Run$: flag(tests)
 
 Executable bench_persistent
   Path: bench/
