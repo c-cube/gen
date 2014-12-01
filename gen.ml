@@ -196,6 +196,25 @@ let scan f acc g =
     = [[]; [2]; [3;2]; [4;3;2]; [5;4;3;2]; [6;5;4;3;2]]
 *)
 
+let unfold_scan f acc g =
+  let state = ref (Run acc) in
+  fun () ->
+    match !state with
+    | Init -> assert false
+    | Stop -> None
+    | Run acc ->
+        match g() with
+        | None -> state := Stop; None
+        | Some x ->
+            let acc', y = f acc x in
+            state := Run acc';
+            Some y
+
+(*$T unfold_scan
+  unfold_scan (fun acc x -> x+acc,acc) 0 (1--5) |> to_list \
+    = [0; 1; 3; 6; 10]
+*)
+
 (** {3 Lazy} *)
 
 let map f gen =
@@ -1092,10 +1111,12 @@ let chunks n e =
     List.map to_list [(0--24); (25--49);(50--74);(75--99);(100--100)]
 *)
 
-(*
-let permutations enum =
+let permutations g =
+
+
   failwith "not implemented" (* TODO *)
 
+(*
 let combinations n enum =
   assert (n >= 0);
   failwith "not implemented" (* TODO *)
@@ -1232,6 +1253,8 @@ module Restart = struct
   let reduce f e = reduce f (e ())
 
   let scan f acc e () = scan f acc (e ())
+
+  let unfold_scan f acc e () = unfold_scan f acc (e())
 
   let iter f e = iter f (e ())
 

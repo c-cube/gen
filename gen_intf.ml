@@ -73,6 +73,12 @@ module type S = sig
     (** Like {!fold}, but keeping successive values of the accumulator.
         Consumes the generator. *)
 
+  val unfold_scan : ('b -> 'a -> 'b * 'c) -> 'b -> 'a t -> 'c t
+    (** A mix of {!unfold} and {!scan}. The current state is combined with
+        the current element to produce a new state, and an output value
+        of type 'c.
+        @since NEXT_RELEASE *)
+
   val iter : ('a -> unit) -> 'a t -> unit
     (** Iterate on the enum, consumes it. *)
 
