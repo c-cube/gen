@@ -170,12 +170,15 @@ let length gen =
 *)
 
 (* useful state *)
-type 'a run_state =
-  | Init
-  | Run of 'a
-  | Stop
+module RunState = struct
+  type 'a t =
+    | Init
+    | Run of 'a
+    | Stop
+end
 
 let scan f acc g =
+  let open RunState in
   let state = ref Init in
   fun () ->
     match !state with
@@ -197,6 +200,7 @@ let scan f acc g =
 *)
 
 let unfold_scan f acc g =
+  let open RunState in
   let state = ref (Run acc) in
   fun () ->
     match !state with
@@ -247,6 +251,7 @@ let append gen1 gen2 =
 *)
 
 let flatten next_gen =
+  let open RunState in
   let state = ref Init in
   (* get next element *)
   let rec next () =
@@ -265,6 +270,7 @@ let flatten next_gen =
   next
 
 let flat_map f next_elem =
+  let open RunState in
   let state = ref Init in
   let rec next() =
     match !state with
@@ -414,7 +420,7 @@ let drop_while p gen =
     | Yield ->
         begin match gen () with
         | None -> state := Stop; None
-        | (Some x) as res -> res
+        | Some _ as res -> res
         end
   in next
 
@@ -831,7 +837,7 @@ let sorted_merge_n ?(cmp=Pervasives.compare) l =
 
 let round_robin ?(n=2) gen =
   (* array of queues, together with their index *)
-  let qs = Array.init n (fun i -> Queue.create ()) in
+  let qs = Array.init n (fun _ -> Queue.create ()) in
   let cur = ref 0 in
   (* get next element for the i-th queue *)
   let rec next i =
@@ -871,7 +877,7 @@ let round_robin ?(n=2) gen =
    when they are consumed evenly *)
 let tee ?(n=2) gen =
   (* array of queues, together with their index *)
-  let qs = Array.init n (fun i -> Queue.create ()) in
+  let qs = Array.init n (fun _ -> Queue.create ()) in
   let finished = ref false in (* is [gen] exhausted? *)
   (* get next element for the i-th queue *)
   let rec next i =
@@ -882,7 +888,7 @@ let tee ?(n=2) gen =
       else Queue.pop qs.(i)
   (* consume one more element *)
   and get_next i = match gen() with
-    | (Some x) as res ->
+    | Some _ as res ->
       for j = 0 to n-1 do
         if j <> i then Queue.push res qs.(j)
       done;
@@ -1039,6 +1045,7 @@ let group ?(eq=(=)) gen =
 *)
 
 let uniq ?(eq=(=)) gen =
+  let open RunState in
   let state = ref Init in
   let rec next() = match !state with
     | Stop -> None
