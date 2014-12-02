@@ -1111,22 +1111,66 @@ let chunks n e =
     List.map to_list [(0--24); (25--49);(50--74);(75--99);(100--100)]
 *)
 
+(* state of the permutation machine. One machine manages one element [x],
+  and depends on a deeper machine [g] that generates permutations of the
+  list minus this element (down to the empty list).
+  The machine can do two things:
+    - insert the element in the current list of [g], at any position
+    - obtain the next list of [g]
+*)
+
+module PermState = struct
+  type 'a state =
+    | Done
+    | Base (* bottom machine, yield [] *)
+    | Insert of 'a insert_state
+  and 'a insert_state = {
+    x : 'a;
+    mutable l : 'a list;
+    mutable n : int; (* idx for insertion *)
+    len : int; (* len of [l] *)
+    sub : 'a t;
+  }
+  and 'a t = {
+    mutable st : 'a state;
+  }
+end
+
 let permutations g =
-  let l = fold (fun acc x->x::acc) [] g in
-  (* choose a first element within [among]. [leftovers] is a set of
-    values to belong to the result, but not to choose the first element from. *)
-  let rec choose_first among leftovers = match among with
-    | [] -> singleton []
-    | [x] -> perms_starting_with x leftovers
-    | x::among' ->
-        append
-          (perms_starting_with x (among' @ leftovers))
-          (choose_first among' (x::leftovers))
-  (* add [x] as head to every element of permutations of [l] *)
-  and perms_starting_with x l =
-    map (fun l -> x::l) (choose_first l [])
+  let open PermState in
+  (* make a machine for n elements. Invariant: n=len(l) *)
+  let rec make_machine n l = match l with
+    | [] -> assert (n=0); {st=Base}
+    | x :: tail ->
+        let sub = make_machine (n-1) tail in
+        let st = match next sub () with
+          | None -> Done
+          | Some l -> Insert {x;n=0;l;len=n;sub}
+        in
+        {st;}
+  (* next element of the machine *)
+  and next m () = match m.st with
+    | Done -> None
+    | Base -> m.st <- Done; Some []
+    | Insert ({x;len;n;l;sub} as state) ->
+        if n=len
+          then match next sub () with
+            | None -> m.st <- Done; None
+            | Some l ->
+                state.l <- l;
+                state.n <- 0;
+                next m ()
+          else (
+            state.n <- state.n + 1;
+            Some (insert x n l)
+          )
+  and insert x n l = match n, l with
+    | 0, _ -> x::l
+    | _, [] -> assert false
+    | _, y::tail -> y :: insert x (n-1) tail
   in
-  choose_first l []
+  let l = fold (fun acc x->x::acc) [] g in
+  next (make_machine (List.length l) l)
 
 (*$T permutations
   permutations (1--3) |> to_list |> List.sort Pervasives.compare = \
@@ -1135,19 +1179,44 @@ let permutations g =
   permutations (singleton 1) |> to_list = [[1]]
 *)
 
+module CombState = struct
+  type 'a state =
+    | Done
+    | Base
+    | Add of 'a * 'a t * 'a t (* add x at beginning of first; then switch to second *)
+    | Follow of 'a t  (* just forward *)
+  and 'a t = {
+    mutable st : 'a state
+  }
+end
+
 let combinations n g =
+  let open CombState in
   assert (n >= 0);
-  let l = fold (fun acc x->x::acc) [] g in
-  (* combinations of n elements from l *)
-  let rec make n l = match n, l with
-    | 0, _ -> singleton []
-    | _, [] -> empty
+  let rec make_state n l = match n, l with
+    | 0, _ -> {st=Base}
+    | _, [] -> {st=Done}
     | _, x::tail ->
-        append (make n tail) (map (fun l->x::l) (make (n-1) tail))
+        let m1 = make_state (n-1) tail in
+        let m2 = make_state n tail in
+        {st=Add(x,m1,m2)}
+  and next m () = match m.st with
+    | Done -> None
+    | Base -> m.st <- Done; Some []
+    | Follow m ->
+        begin match next m () with
+        | None -> m.st <- Done; None
+        | Some _ as res -> res
+        end
+    | Add (x, m1, m2) ->
+        match next m1 () with
+        | None ->
+            m.st <- Follow m2;
+            next m ()
+        | Some l -> Some (x::l)
   in
-  if n>List.length l
-    then empty
-    else make n l
+  let l = fold (fun acc x->x::acc) [] g in
+  next (make_state n l)
 
 (*$T
   combinations 2 (1--4) |> map (List.sort Pervasives.compare) \
@@ -1157,15 +1226,38 @@ let combinations n g =
   combinations 1 (singleton 1) |> to_list = [[1]]
 *)
 
+module PowerSetState = struct
+  type 'a state =
+    | Done
+    | Base
+    | Add of 'a * 'a t (* add x before any result of m *)
+    | AddTo of 'a list * 'a * 'a t (* yield x::list, then back to Add(x,m) *)
+  and 'a t = {
+    mutable st : 'a state
+  }
+end
 
 let power_set g =
+  let open PowerSetState in
+  let rec make_state l = match l with
+    | [] -> {st=Base}
+    | x::tail ->
+        let m = make_state tail in
+        {st=Add(x,m)}
+  and next m () = match m.st with
+    | Done -> None
+    | Base -> m.st <- Done; Some []
+    | Add (x,m') ->
+        begin match next m' () with
+        | None -> m.st <- Done; None
+        | Some l as res -> m.st <- AddTo(l,x,m'); res
+        end
+    | AddTo (l, x, m') ->
+        m.st <- Add (x,m');
+        Some (x::l)
+  in
   let l = fold (fun acc x->x::acc) [] g in
-  let rec make l = match l with
-    | [] -> singleton []
-    | x::l' ->
-        (* careful: must not use a single [make l'] twice *)
-        append (make l') (map (fun l->x::l) (make l'))
-  in make l
+  next (make_state l)
 
 (*$T
   power_set (1--3) |> map (List.sort Pervasives.compare) \
