@@ -94,7 +94,8 @@ val persistent : 'a t -> 'a Restart.t
 val persistent_lazy : 'a t -> 'a Restart.t
   (** Same as {!persistent}, but consumes the generator on demand (by chunks).
       This allows to make a restartable generator out of an ephemeral one,
-      without paying a big cost upfront (nor even consuming it fully). *)
+      without paying a big cost upfront (nor even consuming it fully).
+      @since 0.2.2 *)
 
 val start : 'a Restart.t -> 'a t
   (** Create a new transient generator.
