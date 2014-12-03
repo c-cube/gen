@@ -1186,12 +1186,16 @@ let permutations g =
   permutations (singleton 1) |> to_list = [[1]]
 *)
 
+
 (*
- * B.R.Heap's algorithm for permutations,
- * cf http://en.wikipedia.org/wiki/Heap%27s_algorithm.
- *
- * Continuation-based recursive formula, model for the state manipulations
- * below:
+Credits to Bernardo Freitas Paulo da Costa for [permutations_heap]!
+
+B.R.Heap's algorithm for permutations,
+cf http://en.wikipedia.org/wiki/Heap%27s_algorithm.
+
+Continuation-based recursive formula, model for the state manipulations
+below:
+{[
 let rec heap_perm k a n =
   match n with
   | 0 -> k a
@@ -1203,6 +1207,7 @@ let rec heap_perm k a n =
         a.(j) <- a.(n-1);
         a.(n-1) <- t
       done
+]}
 *)
 
 (* The state of the permutation machine, containing
