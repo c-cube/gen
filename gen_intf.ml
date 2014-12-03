@@ -264,6 +264,10 @@ module type S = sig
     (** Permutations of the enum.
         @since 0.2.2 *)
 
+  val permutations_heap : 'a t -> 'a array t
+    (** Permutations of the enum, using Heap's algorithm.
+        @since NEXT_VERSION *)
+
   val combinations : int -> 'a t -> 'a list t
     (** Combinations of given length. The ordering of the elements within
         each combination is unspecified.

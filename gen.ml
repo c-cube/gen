@@ -1186,6 +1186,85 @@ let permutations g =
   permutations (singleton 1) |> to_list = [[1]]
 *)
 
+(*
+ * B.R.Heap's algorithm for permutations,
+ * cf http://en.wikipedia.org/wiki/Heap%27s_algorithm.
+ *
+ * Continuation-based recursive formula, model for the state manipulations
+ * below:
+let rec heap_perm k a n =
+  match n with
+  | 0 -> k a
+  | n ->
+      for i = 0 to n-1 do
+        heap_perm k a (n-1);
+        let j = (if n mod 2 = 1 then 0 else i) in
+        let t = a.(j) in
+        a.(j) <- a.(n-1);
+        a.(n-1) <- t
+      done
+*)
+
+(* The state of the permutation machine, containing
+   - the array [a] we're permuting, in the "current permutation";
+   - the level of recursion [n]: we can permute elements with index < [n]
+   - the stack of values of indices to permute [i] in the list [is]
+   The permutation stops when we have no more elements in the stack [is].
+*)
+module HeapPermState = struct
+  type 'a state = {
+    elts : 'a array;
+    mutable n : int;
+    mutable is : int list;
+  }
+end
+
+let permutations_heap g =
+  let open HeapPermState in
+  let l = fold (fun acc x->x::acc) [] g in
+  let a = Array.of_list l in
+  let rec next st () = match st.n with
+    | 0 ->
+        begin match st.is with
+        | [] | _::[] -> assert false
+        | 0::i::is' -> (* "Pop state" before returning next element *)
+            st.is <- (i+1)::is';
+            st.n <- 1;
+            Some (Array.copy a)
+        | _::_::_ -> assert false
+        end
+    | n ->
+        match st.is with
+          | [] -> None
+          | i::is' when i = n -> (* Pop state at end of loop *)
+              st.is <- is';
+              st.n <- n+1;
+              begin match st.is with
+              | [] -> None (* last loop *)
+              | i::is' ->
+                  let j = (if st.n mod 2 = 1 then 0 else i) in
+                  let tmp = st.elts.(j) in
+                  st.elts.(j) <- st.elts.(n);
+                  st.elts.(n) <- tmp;
+                  st.is <- (i+1)::is';
+                  next st ()
+              end
+          | _::_ -> (* Recurse down and start new loop *)
+              st.n <- n-1;
+              st.is <- 0 :: st.is;
+              next st ()
+  in
+  let n = Array.length a in
+  if n = 0 then empty
+  else next {elts = a; n=n; is=[0]}
+
+(*$T permutations_heap
+  permutations_heap (1--3) |> to_list |> List.sort Pervasives.compare = \
+    [[|1;2;3|]; [|1;3;2|]; [|2;1;3|]; [|2;3;1|]; [|3;1;2|]; [|3;2;1|]]
+  permutations_heap empty |> to_list = []
+  permutations_heap (singleton 1) |> to_list = [[|1|]]
+*)
+
 module CombState = struct
   type 'a state =
     | Done
@@ -1520,6 +1599,8 @@ module Restart = struct
   let chunks n e () = chunks n (e())
 
   let permutations g () = permutations (g ())
+
+  let permutations_heap g () = permutations_heap (g ())
 
   let combinations n g () = combinations n (g())
 
