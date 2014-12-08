@@ -297,6 +297,15 @@ module type S = sig
   val of_array : ?start:int -> ?len:int -> 'a array -> 'a t
     (** Iterate on (a slice of) the given array *)
 
+  val of_string : ?start:int -> ?len:int -> string -> char t
+    (** Iterate on bytes of the string *)
+
+  val to_string : char t -> string
+    (** Convert into a string *)
+
+  val to_buffer : Buffer.t -> char t -> unit
+    (** Consumes the iterator and writes to the buffer *)
+
   val rand_int : int -> int t
     (** Random ints in the given range. *)
 

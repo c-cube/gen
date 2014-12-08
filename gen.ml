@@ -1408,6 +1408,24 @@ let of_array ?(start=0) ?len a =
     of_array a |> to_array = a)
 *)
 
+let of_string ?(start=0) ?len s =
+  let len = match len with
+  | None -> String.length s - start
+  | Some n -> assert (n + start < String.length s); n in
+  let i = ref start in
+  fun () ->
+    if !i >= start + len
+      then None
+      else (let x = s.[!i] in incr i; Some x)
+
+let to_buffer buf g =
+  iter (Buffer.add_char buf) g
+
+let to_string s =
+  let buf = Buffer.create 16 in
+  to_buffer buf s;
+  Buffer.contents buf
+
 let rand_int i =
   repeatedly (fun () -> Random.int i)
 
@@ -1620,6 +1638,12 @@ module Restart = struct
   let to_array e = to_array (e ())
 
   let of_array ?start ?len a () = of_array ?start ?len a
+
+  let of_string ?start ?len s () = of_string ?start ?len s
+
+  let to_string s = to_string (s ())
+
+  let to_buffer buf s = to_buffer buf (s ())
 
   let rand_int i () = rand_int i
 
