@@ -114,10 +114,34 @@ state are invalidated and must not be used any more.
 
 type 'a clonable = <
   next : unit -> 'a option; (** Use as a generator *)
-  save : 'a clonable;  (** Clone into a distinct clonable gen *)
+  clone : 'a clonable;  (** Clone into a distinct clonable gen *)
 >
 
-(** {2 Low-level Persistency} *)
+(** {2 Low-level Persistency}
+
+Example:
+{[
+let g = 1 -- 1000 ;;
+val g : int t = <fun>
+
+let c = g |> MList.of_gen_lazy |> MList.to_clonable;;
+val c : int clonable = <obj>
+
+c#next |> take 500 |> to_list;;
+- : int list = [1; 2; 3; .....; 500]
+
+let c' = c#clone ;;
+val c' : int clonable = <obj>
+
+c |> to_list;;
+- : int list = [501; 502; ....; 1000]
+
+c' |> to_list;;   (* c consumed, but not c' *)
+- : int list = [501; 502; ....; 1000]
+
+c |> to_list;;
+- : int list = []
+]}*)
 
 module MList : sig
   type 'a t

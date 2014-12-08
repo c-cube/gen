@@ -1667,7 +1667,7 @@ let start g = g ()
 
 type 'a clonable = <
   next : unit -> 'a option; (** Use as a generator *)
-  save : 'a clonable;  (** Clone into a distinct clonable gen *)
+  clone : 'a clonable;  (** Clone into a distinct clonable gen *)
 >
 
 (** {6 Unrolled mutable list} *)
@@ -1764,7 +1764,7 @@ module MList = struct
     let rec make node i = object(self)
       val mutable cur = node
       val mutable i = i
-      method save = make cur i
+      method clone = make cur i
       method next () = match !cur with
       | Nil -> None
       | Cons (a,n,l') ->
@@ -1817,7 +1817,7 @@ module IO = struct
     (* make a generator at offset [i] *)
     let rec make i = object(self)
       val mutable state = `Not_started
-      method save =
+      method clone =
         let i = pos_in ic in
         make i
       method next () =
