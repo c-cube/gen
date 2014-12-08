@@ -1665,6 +1665,11 @@ end
 
 let start g = g ()
 
+type 'a clonable = <
+  next : unit -> 'a option; (** Use as a generator *)
+  save : 'a clonable;  (** Clone into a distinct clonable gen *)
+>
+
 (** {6 Unrolled mutable list} *)
 module MList = struct
   type 'a node =
@@ -1729,7 +1734,7 @@ module MList = struct
 
   (* lazy construction *)
   let of_gen_lazy gen =
-    let mlist = _make ~max_chunk_size:32 gen in
+    let mlist = _make ~max_chunk_size:2048 gen in
     mlist
 
   let to_gen l () =
@@ -1754,6 +1759,31 @@ module MList = struct
         next()
     in
     next
+
+  let to_clonable l : 'a clonable =
+    let rec make node i = object(self)
+      val mutable cur = node
+      val mutable i = i
+      method save = make cur i
+      method next () = match !cur with
+      | Nil -> None
+      | Cons (a,n,l') ->
+          if i = !n
+          then begin
+            cur <- l';
+            i <- 0;
+            self#next()
+          end else begin
+            let y = a.(i) in
+            i <- i+1;
+            Some y
+          end
+      | Suspend gen ->
+          let node = _read_chunk l gen in
+          cur := node;
+          self#next()
+    end in
+    make l.start 0
 end
 
 (** Store content of the generator in an enum *)
@@ -1778,30 +1808,34 @@ let persistent_lazy gen =
     (g' () |> take 200 |> to_list = (1--200 |> to_list))
 *)
 
-(** {2 Save/Restore} *)
-
-type checkpoint = unit -> unit
-
-type save_fun = unit -> checkpoint
-(** Save the current state *)
-let restore f = f ()
-
 (** {2 Basic IO} *)
 
 module IO = struct
   let with_in ?(mode=0o644) ?(flags=[]) filename f =
     let ic = open_in_gen flags mode filename in
-    (* save current position *)
-    let save () =
-      let i = pos_in ic in
-      fun () -> seek_in ic i
-    in
-    let g () =
-      try Some (input_char ic)
-      with End_of_file -> None
-    in
+    let timestamp = ref 0 in
+    (* make a generator at offset [i] *)
+    let rec make i = object(self)
+      val mutable state = `Not_started
+      method save =
+        let i = pos_in ic in
+        make i
+      method next () =
+        match state with
+        | `Not_started ->
+            (* initialize by restoring state *)
+            seek_in ic i;
+            incr timestamp;
+            state <- `Started !timestamp;
+            self#next()
+        | `Started t ->
+            (* check whether another iterator was used more recently *)
+            if t < !timestamp then failwith "invalidated iterator";
+            try Some (input_char ic)
+            with End_of_file -> None
+    end in
     try
-      let x = f g save in
+      let x = f (make 0) in
       close_in_noerr ic;
       x
     with e ->

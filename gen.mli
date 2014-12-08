@@ -112,13 +112,34 @@ state are invalidated and must not be used any more.
 
 @since NEXT_RELEASE *)
 
-type checkpoint = unit -> unit
+type 'a clonable = <
+  next : unit -> 'a option; (** Use as a generator *)
+  save : 'a clonable;  (** Clone into a distinct clonable gen *)
+>
 
-type save_fun = unit -> checkpoint
-(** Save the current state *)
+(** {2 Low-level Persistency} *)
 
-val restore : checkpoint -> unit
-(** Restore to old state. *)
+module MList : sig
+  type 'a t
+  (** An internal append-only storage of elements of type 'a, produced from
+      a generator *)
+
+  val of_gen : 'a gen -> 'a t
+  (** [of_gen g] consumes [g] to build a mlist *)
+
+  val of_gen_lazy : 'a gen -> 'a t
+  (** [of_gen_lazy g] makes a mlist that will read from [g] as required,
+      until [g] is exhausted. Do not use [g] directly after this, or
+      some elements will be absent from the mlist! *)
+
+  val to_gen : 'a t -> 'a Restart.t
+  (** Iterate on the mlist. This function can be called many times without
+      any problem, the mlist isn't consumable! *)
+
+  val to_clonable : 'a t -> 'a clonable
+  (** [to_gen_save l] returns a pair [g, save] such taht [save] allows to
+      save the current state of [g] so that it can be restored later. *)
+end
 
 (** {2 Basic IO}
 
@@ -129,11 +150,13 @@ Iterators are not duplicable, but save/restore can be used for input.
 module IO : sig
   val with_in : ?mode:int -> ?flags:open_flag list ->
                 string ->
-                (char gen -> save_fun -> 'a) -> 'a
-  (** [read filename f] opens [filename] and calls [f g save],
-      where [g] is a generator of characters from the file, and
-      [save] is a function that stores the position within the
-      file. Both the generator and save points are only valid within
+                (char clonable -> 'a) -> 'a
+  (** [read filename f] opens [filename] and calls [f g],
+      where [g] is a clonable generator of characters from the file.
+      It can be cloned by calling [g#save] (which saves the position
+      in the file), and used with [g#next]. Distinct clones of [g] shouldn't
+      be used at the same time (otherwise [Failure _] will be raised).
+      Both the generator and save points are only valid within
       the scope in which [f] is called. *)
 
   val write_str : ?mode:int -> ?flags:open_flag list ->  ?sep:string ->
