@@ -100,3 +100,51 @@ val persistent_lazy : 'a t -> 'a Restart.t
 val start : 'a Restart.t -> 'a t
   (** Create a new transient generator.
       [start gen] is the same as [gen ()] but is included for readability. *)
+
+(** {2 Save/Restore}
+
+Utils to save the internal state of a generator, and restart from this
+state. This will and should not work on {i any} iterator, but for
+some of them (e.g. reading from a file, see {!IO}) it makes a lot of sense.
+
+Once restore is called from a state, all previous iterators that share this
+state are invalidated and must not be used any more.
+
+@since NEXT_RELEASE *)
+
+type checkpoint = unit -> unit
+
+type save_fun = unit -> checkpoint
+(** Save the current state *)
+
+val restore : checkpoint -> unit
+(** Restore to old state. *)
+
+(** {2 Basic IO}
+
+Very basic interface to manipulate files as sequence of chunks/lines.
+Iterators are not duplicable, but save/restore can be used for input.
+@since NEXT_RELEASE *)
+
+module IO : sig
+  val with_in : ?mode:int -> ?flags:open_flag list ->
+                string ->
+                (char gen -> save_fun -> 'a) -> 'a
+  (** [read filename f] opens [filename] and calls [f g save],
+      where [g] is a generator of characters from the file, and
+      [save] is a function that stores the position within the
+      file. Both the generator and save points are only valid within
+      the scope in which [f] is called. *)
+
+  val write_str : ?mode:int -> ?flags:open_flag list ->  ?sep:string ->
+                 string -> string t -> unit
+  (** [write_to filename g] writes all strings from [g] into the given
+      file. It takes care of opening and closing the file.
+      @param mode default [0o644]
+      @param flags used by [open_out_gen]. Default: [[Open_creat;Open_wronly]].
+      @param sep separator between each string (e.g. newline) *)
+
+  val write : ?mode:int -> ?flags:open_flag list ->
+              string -> char t -> unit
+  (** Same as {!write_str} but with individual characters *)
+end

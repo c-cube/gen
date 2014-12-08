@@ -1777,3 +1777,56 @@ let persistent_lazy gen =
     (g' () |> take 100 |> to_list = (1--100 |> to_list)) && \
     (g' () |> take 200 |> to_list = (1--200 |> to_list))
 *)
+
+(** {2 Save/Restore} *)
+
+type checkpoint = unit -> unit
+
+type save_fun = unit -> checkpoint
+(** Save the current state *)
+let restore f = f ()
+
+(** {2 Basic IO} *)
+
+module IO = struct
+  let with_in ?(mode=0o644) ?(flags=[]) filename f =
+    let ic = open_in_gen flags mode filename in
+    (* save current position *)
+    let save () =
+      let i = pos_in ic in
+      fun () -> seek_in ic i
+    in
+    let g () =
+      try Some (input_char ic)
+      with End_of_file -> None
+    in
+    try
+      let x = f g save in
+      close_in_noerr ic;
+      x
+    with e ->
+      close_in_noerr ic;
+      raise e
+
+  let write_str ?(mode=0o644) ?(flags=[Open_creat;Open_wronly]) ?(sep="") filename g =
+    let oc = open_out_gen flags mode filename in
+    try
+      iteri
+        (fun i s ->
+          if i>0 then output_string oc sep;
+          output oc s 0 (Bytes.length s)
+        ) g;
+      close_out oc
+    with e ->
+      close_out oc;
+      raise e
+
+  let write ?(mode=0o644) ?(flags=[Open_creat;Open_wronly]) filename g =
+    let oc = open_out_gen flags mode filename in
+    try
+      iter (fun c -> output_char oc c) g;
+      close_out oc
+    with e ->
+      close_out oc;
+      raise e
+end
