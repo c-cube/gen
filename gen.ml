@@ -1464,6 +1464,8 @@ module Infix = struct
   let (--) = int_range
 
   let (>>=) x f = flat_map f x
+  let (>>|) x f = map f x
+  let (>|=) x f = map f x
 end
 
 include Infix
@@ -1653,6 +1655,8 @@ module Restart = struct
     let (--) = int_range
 
     let (>>=) x f = flat_map f x
+    let (>>|) x f = map f x
+    let (>|=) x f = map f x
   end
 
   include Infix

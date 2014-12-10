@@ -319,6 +319,10 @@ module type S = sig
 
     val (>>=) : 'a t -> ('a -> 'b gen) -> 'b t
       (** Monadic bind operator *)
+    val (>>|) : 'a t -> ('a -> 'b) -> 'b t
+      (** Monadic map operator *)
+    val (>|=) : 'a t -> ('a -> 'b) -> 'b t
+      (** Monadic map operator *)
   end
 
   val (--) : int -> int -> int t
