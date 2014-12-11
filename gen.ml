@@ -397,7 +397,6 @@ let take_while p gen =
 (*$T
   take_while (fun x ->x<10) (1--1000) |> eq (1--9)
 *)
-
 module DropWhileState = struct
   type t =
     | Stop
@@ -405,6 +404,15 @@ module DropWhileState = struct
     | Yield
 end
 
+(* state machine starts at Drop:
+    Drop:
+      - If next element doesn't satisfy predicate, goto yield
+      - if no more elements, goto stop
+    Yield:
+      - if there is a next element, yield it
+      - if no more elements, goto stop
+    Stop: just return None
+*)
 let drop_while p gen =
   let open DropWhileState in
   let state = ref Drop in
@@ -672,15 +680,27 @@ module MergeState = struct
   }
 
   and my_state =
-    | NewGen
-    | YieldAndNew
-    | Yield
-    | Stop
+    | NewGen   (* obtain a new generator and push it in queue *)
+    | YieldAndNew (* yield element from queue, then behave like NewGen *)
+    | Yield (* just yield elements from queue *)
+    | Stop  (* no more elements *)
 end
 
-(* state machine:
-    (NewGen -> YieldAndNew)* // then no more generators in next_gen, so
-    -> Yield* -> Stop *)
+(* state machine starts at NewGen:
+  NewGen: use next_gen to push a new gen into the queue
+  Yield:
+    while the queue is not empty:
+      pop gen g from it
+      if g is empty continue
+      else:
+        pop element x from g
+        push g at back of queue
+        yield x
+  YieldAndNew: mix of Yield and NewGen.
+    if next_gen is exhausted, goto Yield;
+    if queue is empty, goto NewGen
+  Stop: do nothing
+*)
 let merge next_gen =
   let open MergeState in
   let state = {gens = Queue.create(); state=NewGen;}in
