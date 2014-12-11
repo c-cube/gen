@@ -106,7 +106,7 @@ val start : 'a Restart.t -> 'a t
 (** {2 Basic IO}
 
 Very basic interface to manipulate files as sequence of chunks/lines.
-@since NEXT_RELEASE *)
+@since 0.2.3 *)
 
 module IO : sig
   val with_in : ?mode:int -> ?flags:open_flag list ->

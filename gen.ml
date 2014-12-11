@@ -1734,7 +1734,7 @@ module IO = struct
       iteri
         (fun i s ->
           if i>0 then output_string oc sep;
-          output oc s 0 (Bytes.length s)
+          output oc s 0 (String.length s)
         ) g;
       close_out oc
     with e ->

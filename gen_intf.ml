@@ -266,7 +266,7 @@ module type S = sig
 
   val permutations_heap : 'a t -> 'a array t
     (** Permutations of the gen, using Heap's algorithm.
-        @since NEXT_VERSION *)
+        @since 0.2.3 *)
 
   val combinations : int -> 'a t -> 'a list t
     (** Combinations of given length. The ordering of the elements within

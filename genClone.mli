@@ -29,7 +29,7 @@ Utils to save the internal state of a generator, and restart from this
 state. This will and should not work on {i any} iterator, but for
 some of them (e.g. reading from a file, see {!IO}) it makes a lot of sense.
 
-@since NEXT_RELEASE *)
+@since 0.2.3 *)
 
 type 'a gen = unit -> 'a option
 

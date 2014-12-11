@@ -51,7 +51,7 @@ c#gen |> to_list;;
 - : int list = []
 ]}
 
-@since NEXT_RELEASE *)
+@since 0.2.3 *)
 
 type 'a gen = unit -> 'a option
 type 'a clonable = <
