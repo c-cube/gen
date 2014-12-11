@@ -43,8 +43,7 @@ Executable run_qtest
   CompiledObject:   native
   MainIs:           run_qtest.ml
   Build$:           flag(tests)
-  BuildDepends:     containers, containers.misc, containers.string,
-                    oUnit, QTest2Lib
+  BuildDepends:     gen, oUnit, QTest2Lib
 
 Test all
   Command: make test-all
