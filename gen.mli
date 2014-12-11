@@ -91,10 +91,12 @@ val persistent : 'a t -> 'a Restart.t
       on it several times later. If possible, consider using combinators
       from {!Restart} directly instead. *)
 
-val persistent_lazy : 'a t -> 'a Restart.t
+val persistent_lazy : ?caching:bool -> ?max_chunk_size:int ->
+                      'a t -> 'a Restart.t
   (** Same as {!persistent}, but consumes the generator on demand (by chunks).
       This allows to make a restartable generator out of an ephemeral one,
       without paying a big cost upfront (nor even consuming it fully).
+      Optional parameters: see {!GenMList.of_gen_lazy}.
       @since 0.2.2 *)
 
 val start : 'a Restart.t -> 'a t

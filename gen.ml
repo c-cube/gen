@@ -1681,8 +1681,8 @@ let persistent gen =
     Restart.to_list g' = [1;2;3;4;5;6;7;8;9;10]
 *)
 
-let persistent_lazy gen =
-  let l = GenMList.of_gen_lazy gen in
+let persistent_lazy ?caching ?max_chunk_size gen =
+  let l = GenMList.of_gen_lazy ?caching ?max_chunk_size gen in
   fun () -> GenMList.to_gen l
 
 (*$T

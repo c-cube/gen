@@ -143,6 +143,12 @@ let bench_current_lazy n =
     ignore (_sum g)
   done
 
+let bench_current_lazy_no_cache n =
+  for _i = 0 to 100 do
+    let g = Gen.persistent_lazy ~caching:false Gen.(1 -- n) in
+    ignore (_sum g)
+  done
+
 let () =
   let bench_n n = 
     Printf.printf "BENCH for %d\n" n;
@@ -152,6 +158,7 @@ let () =
       ; "unrolled", bench_unrolled, n
       ; "current", bench_current, n
       ; "current_lazy", bench_current_lazy, n
+      ; "current_lazy_no_cache", bench_current_lazy_no_cache, n
       ]
     in Benchmark.tabulate res
   in
