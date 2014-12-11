@@ -29,9 +29,6 @@ Utils to save the internal state of a generator, and restart from this
 state. This will and should not work on {i any} iterator, but for
 some of them (e.g. reading from a file, see {!IO}) it makes a lot of sense.
 
-Once restore is called from a state, all previous iterators that share this
-state are invalidated and must not be used any more.
-
 @since NEXT_RELEASE *)
 
 type 'a gen = unit -> 'a option
