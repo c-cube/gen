@@ -319,10 +319,14 @@ module type S = sig
 
     val (>>=) : 'a t -> ('a -> 'b gen) -> 'b t
       (** Monadic bind operator *)
+
     val (>>|) : 'a t -> ('a -> 'b) -> 'b t
-      (** Infix map operator *)
+      (** Infix map operator
+          @since 0.2.3 *)
+
     val (>|=) : 'a t -> ('a -> 'b) -> 'b t
-      (** Infix map operator *)
+      (** Infix map operator
+          @since 0.2.3 *)
   end
 
   val (--) : int -> int -> int t
@@ -330,6 +334,14 @@ module type S = sig
 
   val (>>=) : 'a t -> ('a -> 'b gen) -> 'b t
     (** Monadic bind operator *)
+
+  val (>>|) : 'a t -> ('a -> 'b) -> 'b t
+    (** Infix map operator
+        @since 0.2.3 *)
+
+  val (>|=) : 'a t -> ('a -> 'b) -> 'b t
+    (** Infix map operator
+        @since 0.2.3 *)
 
   val pp : ?start:string -> ?stop:string -> ?sep:string -> ?horizontal:bool ->
            (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
