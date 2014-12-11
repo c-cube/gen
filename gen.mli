@@ -101,86 +101,18 @@ val start : 'a Restart.t -> 'a t
   (** Create a new transient generator.
       [start gen] is the same as [gen ()] but is included for readability. *)
 
-(** {2 Save/Restore}
-
-Utils to save the internal state of a generator, and restart from this
-state. This will and should not work on {i any} iterator, but for
-some of them (e.g. reading from a file, see {!IO}) it makes a lot of sense.
-
-Once restore is called from a state, all previous iterators that share this
-state are invalidated and must not be used any more.
-
-@since NEXT_RELEASE *)
-
-type 'a clonable = <
-  next : unit -> 'a option; (** Use as a generator *)
-  clone : 'a clonable;  (** Clone into a distinct clonable gen *)
->
-
-(** {2 Low-level Persistency}
-
-Example:
-{[
-let g = 1 -- 1000 ;;
-val g : int t = <fun>
-
-let c = g |> MList.of_gen_lazy |> MList.to_clonable;;
-val c : int clonable = <obj>
-
-c#next |> take 500 |> to_list;;
-- : int list = [1; 2; 3; .....; 500]
-
-let c' = c#clone ;;
-val c' : int clonable = <obj>
-
-c |> to_list;;
-- : int list = [501; 502; ....; 1000]
-
-c' |> to_list;;   (* c consumed, but not c' *)
-- : int list = [501; 502; ....; 1000]
-
-c |> to_list;;
-- : int list = []
-]}*)
-
-module MList : sig
-  type 'a t
-  (** An internal append-only storage of elements of type 'a, produced from
-      a generator *)
-
-  val of_gen : 'a gen -> 'a t
-  (** [of_gen g] consumes [g] to build a mlist *)
-
-  val of_gen_lazy : 'a gen -> 'a t
-  (** [of_gen_lazy g] makes a mlist that will read from [g] as required,
-      until [g] is exhausted. Do not use [g] directly after this, or
-      some elements will be absent from the mlist! *)
-
-  val to_gen : 'a t -> 'a Restart.t
-  (** Iterate on the mlist. This function can be called many times without
-      any problem, the mlist isn't consumable! *)
-
-  val to_clonable : 'a t -> 'a clonable
-  (** [to_gen_save l] returns a pair [g, save] such taht [save] allows to
-      save the current state of [g] so that it can be restored later. *)
-end
-
 (** {2 Basic IO}
 
 Very basic interface to manipulate files as sequence of chunks/lines.
-Iterators are not duplicable, but save/restore can be used for input.
 @since NEXT_RELEASE *)
 
 module IO : sig
   val with_in : ?mode:int -> ?flags:open_flag list ->
                 string ->
-                (char clonable -> 'a) -> 'a
+                (char t -> 'a) -> 'a
   (** [read filename f] opens [filename] and calls [f g],
-      where [g] is a clonable generator of characters from the file.
-      It can be cloned by calling [g#save] (which saves the position
-      in the file), and used with [g#next]. Distinct clones of [g] shouldn't
-      be used at the same time (otherwise [Failure _] will be raised).
-      Both the generator and save points are only valid within
+      where [g] is a generator of characters from the file.
+      The generator is only valid within
       the scope in which [f] is called. *)
 
   val write_str : ?mode:int -> ?flags:open_flag list ->  ?sep:string ->

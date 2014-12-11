@@ -1669,131 +1669,10 @@ end
 
 let start g = g ()
 
-type 'a clonable = <
-  next : unit -> 'a option; (** Use as a generator *)
-  clone : 'a clonable;  (** Clone into a distinct clonable gen *)
->
-
-(** {6 Unrolled mutable list} *)
-module MList = struct
-  type 'a node =
-    | Nil
-    | Cons of 'a array * int ref * 'a node ref
-    | Suspend of 'a gen
-
-  type 'a t = {
-    start : 'a node ref; (* first node. *)
-    mutable chunk_size : int;
-    max_chunk_size : int;
-  }
-
-  let _make ~max_chunk_size gen = {
-    start = ref (Suspend gen);
-    chunk_size = 8;
-    max_chunk_size;
-  }
-
-  (* increment the size of chunks *)
-  let _incr_chunk_size mlist =
-    if mlist.chunk_size < mlist.max_chunk_size
-      then mlist.chunk_size <- 2 * mlist.chunk_size
-
-  (* read one chunk of input; return the corresponding node.
-    will potentially change [mlist.chunk_size]. *)
-  let _read_chunk mlist gen =
-    match gen() with
-    | None -> Nil  (* done *)
-    | Some x ->
-      (* new list node *)
-        let r = ref 1 in
-        let a = Array.make mlist.chunk_size x in
-        let tail = ref (Suspend gen) in
-        let stop = ref false in
-        let node = Cons (a, r, tail) in
-        (* read the rest of the chunk *)
-        while not !stop && !r < mlist.chunk_size do
-          match gen() with
-          | None ->
-              tail := Nil;
-              stop := true
-          | Some x ->
-              a.(!r) <- x;
-              incr r;
-        done;
-        _incr_chunk_size mlist;
-        node
-
-  (* eager construction *)
-  let of_gen gen =
-    let mlist = _make ~max_chunk_size:4096 gen in
-    let rec _fill prev = match _read_chunk mlist gen with
-      | Nil -> prev := Nil
-      | Suspend _ -> assert false
-      | Cons (_, _, prev') as node ->
-          prev := node;
-          _fill prev'
-    in
-    _fill mlist.start;
-    mlist
-
-  (* lazy construction *)
-  let of_gen_lazy gen =
-    let mlist = _make ~max_chunk_size:2048 gen in
-    mlist
-
-  let to_gen l () =
-    let cur = ref l.start in
-    let i = ref 0 in
-    let rec next() = match ! !cur with
-    | Nil -> None
-    | Cons (a,n,l') ->
-        if !i = !n
-        then begin
-          cur := l';
-          i := 0;
-          next()
-        end else begin
-          let y = a.(!i) in
-          incr i;
-          Some y
-        end
-    | Suspend gen ->
-        let node = _read_chunk l gen in
-        !cur := node;
-        next()
-    in
-    next
-
-  let to_clonable l : 'a clonable =
-    let rec make node i = object(self)
-      val mutable cur = node
-      val mutable i = i
-      method clone = make cur i
-      method next () = match !cur with
-      | Nil -> None
-      | Cons (a,n,l') ->
-          if i = !n
-          then begin
-            cur <- l';
-            i <- 0;
-            self#next()
-          end else begin
-            let y = a.(i) in
-            i <- i+1;
-            Some y
-          end
-      | Suspend gen ->
-          let node = _read_chunk l gen in
-          cur := node;
-          self#next()
-    end in
-    make l.start 0
-end
-
 (** Store content of the generator in an enum *)
 let persistent gen =
-  let l = MList.of_gen gen in
-  MList.to_gen l
+  let l = GenMList.of_gen gen in
+  fun () -> GenMList.to_gen l
 
 (*$T
   let g = 1--10 in let g' = persistent g in \
@@ -1803,8 +1682,8 @@ let persistent gen =
 *)
 
 let persistent_lazy gen =
-  let l = MList.of_gen_lazy gen in
-  MList.to_gen l
+  let l = GenMList.of_gen_lazy gen in
+  fun () -> GenMList.to_gen l
 
 (*$T
   let g = 1--1_000_000_000 in let g' = persistent_lazy g in \
@@ -1817,29 +1696,12 @@ let persistent_lazy gen =
 module IO = struct
   let with_in ?(mode=0o644) ?(flags=[]) filename f =
     let ic = open_in_gen flags mode filename in
-    let timestamp = ref 0 in
-    (* make a generator at offset [i] *)
-    let rec make i = object(self)
-      val mutable state = `Not_started
-      method clone =
-        let i = pos_in ic in
-        make i
-      method next () =
-        match state with
-        | `Not_started ->
-            (* initialize by restoring state *)
-            seek_in ic i;
-            incr timestamp;
-            state <- `Started !timestamp;
-            self#next()
-        | `Started t ->
-            (* check whether another iterator was used more recently *)
-            if t < !timestamp then failwith "invalidated iterator";
-            try Some (input_char ic)
-            with End_of_file -> None
-    end in
+    let next() =
+      try Some (input_char ic)
+      with End_of_file -> None
+    in
     try
-      let x = f (make 0) in
+      let x = f next in
       close_in_noerr ic;
       x
     with e ->

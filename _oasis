@@ -17,7 +17,7 @@ Flag "bench"
 Library "gen"
   Path:             .
   Pack:             false
-  Modules:          Gen, Gen_intf
+  Modules:          Gen, GenClone, GenMList, Gen_intf
 
 Document gen
   Title:                Containers docs
