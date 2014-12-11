@@ -66,10 +66,14 @@ type 'a t
 val of_gen : 'a gen -> 'a t
 (** [of_gen g] consumes [g] to build a mlist *)
 
-val of_gen_lazy : 'a gen -> 'a t
+val of_gen_lazy : ?max_chunk_size:int -> ?caching:bool -> 'a gen -> 'a t
 (** [of_gen_lazy g] makes a mlist that will read from [g] as required,
     until [g] is exhausted. Do not use [g] directly after this, or
-    some elements will be absent from the mlist! *)
+    some elements will be absent from the mlist!
+    @param caching if true or absent, values are read from the generator
+      by chunks of increasing size. If false, values are read one by one.
+    @param max_chunk_size if provided and [caching = true],
+      sets the (maximal) size of the internal chunks *)
 
 val to_gen : 'a t -> 'a gen
 (** Iterate on the mlist. This function can be called many times without

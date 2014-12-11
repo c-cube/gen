@@ -34,6 +34,7 @@ type 'a clonable = <
 type 'a node =
   | Nil
   | Cons of 'a array * int ref * 'a node ref
+  | Cons1 of 'a * 'a node ref
   | Suspend of 'a gen
 
 type 'a t = {
@@ -48,6 +49,12 @@ let _make ~max_chunk_size gen = {
   max_chunk_size;
 }
 
+let _make_no_buffer gen = {
+  start = ref (Suspend gen);
+  chunk_size = 1;
+  max_chunk_size = 1;
+}
+
 (* increment the size of chunks *)
 let _incr_chunk_size mlist =
   if mlist.chunk_size < mlist.max_chunk_size
@@ -58,6 +65,10 @@ let _incr_chunk_size mlist =
 let _read_chunk mlist gen =
   match gen() with
   | None -> Nil  (* done *)
+  | Some x when mlist.max_chunk_size = 1 ->
+      let tail = ref (Suspend gen) in
+      let node = Cons1 (x, tail) in
+      node
   | Some x ->
     (* new list node *)
       let r = ref 1 in
@@ -84,6 +95,9 @@ let of_gen gen =
   let rec _fill prev = match _read_chunk mlist gen with
     | Nil -> prev := Nil
     | Suspend _ -> assert false
+    | Cons1 (_, prev') as node ->
+        prev := node;
+        _fill prev'
     | Cons (_, _, prev') as node ->
         prev := node;
         _fill prev'
@@ -92,15 +106,21 @@ let of_gen gen =
   mlist
 
 (* lazy construction *)
-let of_gen_lazy gen =
-  let mlist = _make ~max_chunk_size:2048 gen in
-  mlist
+let of_gen_lazy ?(max_chunk_size=2048) ?(caching=true) gen =
+  if caching
+    then
+      let max_chunk_size = max max_chunk_size 2 in
+      _make ~max_chunk_size gen
+    else _make_no_buffer gen
 
 let to_gen l =
   let cur = ref l.start in
   let i = ref 0 in
   let rec next() = match ! !cur with
   | Nil -> None
+  | Cons1 (x, l') ->
+      cur := l';
+      Some x
   | Cons (a,n,l') ->
       if !i = !n
       then begin
@@ -135,6 +155,9 @@ let to_clonable l : 'a clonable =
             i := !i+1;
             Some y
           end
+      | Cons1 (x, l') ->
+          cur := l';
+          Some x
       | Suspend gen ->
           let node = _read_chunk l gen in
           (!cur) := node;
