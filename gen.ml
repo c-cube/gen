@@ -397,6 +397,7 @@ let take_while p gen =
 (*$T
   take_while (fun x ->x<10) (1--1000) |> eq (1--9)
 *)
+
 module DropWhileState = struct
   type t =
     | Stop

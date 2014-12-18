@@ -57,7 +57,12 @@ module type S = sig
         stop at the limit (excluded).
         For instance [init ~limit:4 id] will yield 0, 1, 2, and 3. *)
 
-  (** {2 Basic combinators} *)
+  (** {2 Basic combinators}
+
+  {b Note}: those combinators, applied to generators (not restartable
+  generators) {i consume} their argument. Sometimes they consume it lazily,
+  sometimes eagerly, but in any case once [f gen] has been called (with [f] a
+  combinator), [gen] shouldn't be used anymore. *)
 
   val is_empty : _ t -> bool
     (** Check whether the gen is empty. Pops an element, if any *)
@@ -126,10 +131,12 @@ module type S = sig
     (** Filter out elements that do not satisfy the predicate.  *)
 
   val take_while : ('a -> bool) -> 'a t -> 'a t
-    (** Take elements while they satisfy the predicate *)
+    (** Take elements while they satisfy the predicate. The initial generator
+        itself is not to be used anymore after this. *)
 
   val drop_while : ('a -> bool) -> 'a t -> 'a t
-    (** Drop elements while they satisfy the predicate *)
+    (** Drop elements while they satisfy the predicate. The initial generator
+        itself should not be used anymore, only the result of [drop_while]. *)
 
   val filter_map : ('a -> 'b option) -> 'a t -> 'b t
     (** Maps some elements to 'b, drop the other ones *)
