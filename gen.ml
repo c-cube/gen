@@ -235,6 +235,9 @@ let map f gen =
     of_list l |> map f |> to_list = List.map f l)
 *)
 
+let fold_map f s g =
+  map (let state = ref s in fun x -> state := f x (!state); !state) g
+
 let append gen1 gen2 =
   let first = ref true in
   let rec next() =
@@ -1538,6 +1541,8 @@ module Restart = struct
   let length e = length (e ())
 
   let map f e () = map f (e ())
+
+  let fold_map f s e () = fold_map f s (e ())
 
   let append e1 e2 () = append (e1 ()) (e2 ())
 
