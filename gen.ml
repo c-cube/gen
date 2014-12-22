@@ -236,7 +236,7 @@ let map f gen =
 *)
 
 let fold_map f s g =
-  map (let state = ref s in fun x -> state := f x (!state); !state) g
+  map (let state = ref s in fun x -> state := f (!state) x; !state) g
 
 let append gen1 gen2 =
   let first = ref true in
