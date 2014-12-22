@@ -238,6 +238,10 @@ let map f gen =
 let fold_map f s g =
   map (let state = ref s in fun x -> state := f (!state) x; !state) g
 
+(*$T
+  fold_map (+) 0 (1--3) |> to_list = [1;3;6]
+*)
+
 let append gen1 gen2 =
   let first = ref true in
   let rec next() =
