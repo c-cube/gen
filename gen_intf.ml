@@ -97,6 +97,10 @@ module type S = sig
     (** Lazy map. No iteration is performed now, the function will be called
         when the result is traversed. *)
 
+  val fold_map : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b t
+    (** Lazy fold and map. No iteration is performed now, the function will be called
+        when the result is traversed. *)
+
   val append : 'a t -> 'a t -> 'a t
     (** Append the two gens; the result contains the elements of the first,
         then the elements of the second gen. *)
