@@ -140,6 +140,10 @@ module type S = sig
     (** Take elements while they satisfy the predicate. The initial generator
         itself is not to be used anymore after this. *)
 
+  val fold_while : ('a -> 'b -> 'a * [`Stop | `Continue]) -> 'a -> 'b t -> 'a
+    (** Fold elements until (['a, `Stop]) is indicated by the accumulator.
+        @since NEXT_RELEASE *)
+
   val drop_while : ('a -> bool) -> 'a t -> 'a t
     (** Drop elements while they satisfy the predicate. The initial generator
         itself should not be used anymore, only the result of [drop_while]. *)

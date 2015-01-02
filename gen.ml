@@ -235,8 +235,8 @@ let map f gen =
     of_list l |> map f |> to_list = List.map f l)
 *)
 
-let fold_map f s g =
-  map (let state = ref s in fun x -> state := f (!state) x; !state) g
+let fold_map f s gen =
+  map (let state = ref s in fun x -> state := f (!state) x; !state) gen
 
 (*$T
   fold_map (+) 0 (1--3) |> to_list = [1;3;6]
@@ -403,6 +403,25 @@ let take_while p gen =
 
 (*$T
   take_while (fun x ->x<10) (1--1000) |> eq (1--9)
+*)
+
+let fold_while f s gen =
+  let state = ref s in
+  let rec consume gen = match gen() with
+     | None -> ()
+     | Some x ->
+       let acc, cont = f !state x in
+       state := acc;
+       match cont with
+       | `Stop -> ()
+       | `Continue -> consume gen
+  in
+  consume gen;
+  !state
+
+(*$T
+  fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 \
+    (of_list [true;true;false;true]) = 2
 *)
 
 module DropWhileState = struct
@@ -1567,6 +1586,8 @@ module Restart = struct
   let filter p e () = filter p (e ())
 
   let take_while p e () = take_while p (e ())
+
+  let fold_while f s e = fold_while f s (e ())
 
   let drop_while p e () = drop_while p (e ())
 
