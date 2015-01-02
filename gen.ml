@@ -406,12 +406,18 @@ let take_while p gen =
 *)
 
 let fold_while f s gen =
- let state = ref s in
- let folder e = let acc, cont = f (!state) e in
-  state := acc; match cont with
-  | `Stop -> false
-  | `Continue -> true in
- fold (fun (_:'a) (_:'b) -> !state) !state (take_while folder gen)
+  let state = ref s in
+  let rec consume gen = match gen() with
+     | None -> ()
+     | Some x ->
+       let acc, cont = f !state x in
+       state := acc;
+       match cont with
+       | `Stop -> ()
+       | `Continue -> consume gen
+  in
+  consume gen;
+  !state
 
 (*$T
   fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 \
