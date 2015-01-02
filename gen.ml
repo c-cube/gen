@@ -402,8 +402,6 @@ let take_while p gen =
     | None -> stop:=true; None
 
 (*$T
-let take_while p e () = take_while p (e ())
-
   take_while (fun x ->x<10) (1--1000) |> eq (1--9)
 *)
 
@@ -418,7 +416,7 @@ let fold_while f s gen =
   !state, gen
 
 (*$T
-  fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 (of_list [true;true;false;true]) = 2
+  let acc, _ = fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 (of_list [true;true;false;true]) in acc = 2
 *)
 
 module DropWhileState = struct
