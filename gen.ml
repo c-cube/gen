@@ -406,17 +406,16 @@ let take_while p gen =
 *)
 
 let fold_while f s gen =
-  let state = ref s in
-  let gen = take_while (fun e ->
-    let acc, cont = f (!state) e in
-    state := acc;
-    match cont with
-    | `Stop -> false
-    | `Continue -> true) gen in
-  !state, gen
+ let state = ref s in
+ let folder e = let acc, cont = f (!state) e in
+  state := acc; match cont with
+  | `Stop -> false
+  | `Continue -> true in
+ fold (fun (_:'a) (_:'b) -> !state) !state (take_while folder gen)
 
 (*$T
-  let acc, _ = fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 (of_list [true;true;false;true]) in acc = 2
+  fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 \
+    (of_list [true;true;false;true]) = 2
 *)
 
 module DropWhileState = struct
@@ -1582,9 +1581,7 @@ module Restart = struct
 
   let take_while p e () = take_while p (e ())
 
-  let fold_while f s e =
-    let acc, gen = fold_while f s (e ()) in
-    acc, fun () -> gen
+  let fold_while f s e = fold_while f s (e ())
 
   let drop_while p e () = drop_while p (e ())
 
