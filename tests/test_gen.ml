@@ -58,13 +58,13 @@ let test_flat_map () =
   ()
 
 let test_zip () =
-  let e = Gen.zip_with (+) (Gen.repeat 1) (4--7) in
+  let e = Gen.zip_with ~f:(+) (Gen.repeat 1) (4--7) in
   OUnit.assert_equal [5;6;7;8] (Gen.to_list e);
   ()
 
 let test_filter_map () =
   let f x = if x mod 2 = 0 then Some (string_of_int x) else None in
-  let e = Gen.filter_map f (1 -- 10) in
+  let e = Gen.filter_map ~f (1 -- 10) in
   OUnit.assert_equal ["2"; "4"; "6"; "8"; "10"] (Gen.to_list e);
   ()
 

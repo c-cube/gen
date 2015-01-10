@@ -67,14 +67,14 @@ module type S = sig
   val is_empty : _ t -> bool
     (** Check whether the gen is empty. Pops an element, if any *)
 
-  val fold : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b
+  val fold : f:('b -> 'a -> 'b) -> init:'b -> 'a t -> 'b
     (** Fold on the generator, tail-recursively. Consumes the generator. *)
 
-  val reduce : ('a -> 'a -> 'a) -> 'a t -> 'a
+  val reduce : f:('a -> 'a -> 'a) -> 'a t -> 'a
     (** Fold on non-empty sequences. Consumes the generator.
         @raise Invalid_argument on an empty gen *)
 
-  val scan : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b t
+  val scan : f:('b -> 'a -> 'b) -> init:'b -> 'a t -> 'b t
     (** Like {!fold}, but keeping successive values of the accumulator.
         Consumes the generator. *)
 
@@ -84,20 +84,20 @@ module type S = sig
         of type 'c.
         @since 0.2.2 *)
 
-  val iter : ('a -> unit) -> 'a t -> unit
+  val iter : f:('a -> unit) -> 'a t -> unit
     (** Iterate on the gen, consumes it. *)
 
-  val iteri : (int -> 'a -> unit) -> 'a t -> unit
+  val iteri : f:(int -> 'a -> unit) -> 'a t -> unit
     (** Iterate on elements with their index in the gen, from 0, consuming it. *)
 
   val length : _ t -> int
     (** Length of an gen (linear time), consuming it *)
 
-  val map : ('a -> 'b) -> 'a t -> 'b t
+  val map : f:('a -> 'b) -> 'a t -> 'b t
     (** Lazy map. No iteration is performed now, the function will be called
         when the result is traversed. *)
 
-  val fold_map : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b t
+  val fold_map : f:('b -> 'a -> 'b) -> init:'b -> 'a t -> 'b t
     (** Lazy fold and map. No iteration is performed now, the function will be
         called when the result is traversed. The result is
         an iterator over the successive states of the fold.
@@ -110,12 +110,12 @@ module type S = sig
   val flatten : 'a gen t -> 'a t
     (** Flatten the generator of generators *)
 
-  val flat_map : ('a -> 'b gen) -> 'a t -> 'b t
+  val flat_map : f:('a -> 'b gen) -> 'a t -> 'b t
     (** Monadic bind; each element is transformed to a sub-gen
         which is then iterated on, before the next element is processed,
         and so on. *)
 
-  val mem : ?eq:('a -> 'a -> bool) -> 'a -> 'a t -> bool
+  val mem : ?eq:('a -> 'a -> bool) -> x:'a -> 'a t -> bool
     (** Is the given element, member of the gen? *)
 
   val take : int -> 'a t -> 'a t
@@ -133,22 +133,22 @@ module type S = sig
         is a multiple of [n]. For instance [take_nth 2 (1--10) |> to_list]
         will return [1;3;5;7;9] *)
 
-  val filter : ('a -> bool) -> 'a t -> 'a t
+  val filter : f:('a -> bool) -> 'a t -> 'a t
     (** Filter out elements that do not satisfy the predicate.  *)
 
-  val take_while : ('a -> bool) -> 'a t -> 'a t
+  val take_while : f:('a -> bool) -> 'a t -> 'a t
     (** Take elements while they satisfy the predicate. The initial generator
         itself is not to be used anymore after this. *)
 
-  val fold_while : ('a -> 'b -> 'a * [`Stop | `Continue]) -> 'a -> 'b t -> 'a
+  val fold_while : f:('a -> 'b -> 'a * [`Stop | `Continue]) -> init:'a -> 'b t -> 'a
     (** Fold elements until (['a, `Stop]) is indicated by the accumulator.
         @since NEXT_RELEASE *)
 
-  val drop_while : ('a -> bool) -> 'a t -> 'a t
+  val drop_while : f:('a -> bool) -> 'a t -> 'a t
     (** Drop elements while they satisfy the predicate. The initial generator
         itself should not be used anymore, only the result of [drop_while]. *)
 
-  val filter_map : ('a -> 'b option) -> 'a t -> 'b t
+  val filter_map : f:('a -> 'b option) -> 'a t -> 'b t
     (** Maps some elements to 'b, drop the other ones *)
 
   val zip_index : 'a t -> (int * 'a) t
@@ -157,14 +157,14 @@ module type S = sig
   val unzip : ('a * 'b) t -> 'a t * 'b t
     (** Unzip into two sequences, splitting each pair *)
 
-  val partition : ('a -> bool) -> 'a t -> 'a t * 'a t
+  val partition : f:('a -> bool) -> 'a t -> 'a t * 'a t
     (** [partition p l] returns the elements that satisfy [p],
         and the elements that do not satisfy [p] *)
 
-  val for_all : ('a -> bool) -> 'a t -> bool
+  val for_all : f:('a -> bool) -> 'a t -> bool
     (** Is the predicate true for all elements? *)
 
-  val exists : ('a -> bool) -> 'a t -> bool
+  val exists : f:('a -> bool) -> 'a t -> bool
     (** Is the predicate true for at least one element? *)
 
   val min : ?lt:('a -> 'a -> bool) -> 'a t -> 'a
@@ -185,7 +185,7 @@ module type S = sig
   val compare : ?cmp:('a -> 'a -> int) -> 'a t -> 'a t -> int
     (** Synonym for {! lexico} *)
 
-  val find : ('a -> bool) -> 'a t -> 'a option
+  val find : f:('a -> bool) -> 'a t -> 'a option
     (** [find p e] returns the first element of [e] to satisfy [p],
         or None. *)
 
@@ -194,24 +194,24 @@ module type S = sig
 
   (** {2 Multiple iterators} *)
 
-  val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val map2 : f:('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
     (** Map on the two sequences. Stops once one of them is exhausted.*)
 
-  val iter2 : ('a -> 'b -> unit) -> 'a t -> 'b t -> unit
+  val iter2 : f:('a -> 'b -> unit) -> 'a t -> 'b t -> unit
     (** Iterate on the two sequences. Stops once one of them is exhausted.*)
 
-  val fold2 : ('acc -> 'a -> 'b -> 'acc) -> 'acc -> 'a t -> 'b t -> 'acc
+  val fold2 : f:('acc -> 'a -> 'b -> 'acc) -> init:'acc -> 'a t -> 'b t -> 'acc
     (** Fold the common prefix of the two iterators *)
 
-  val for_all2 : ('a -> 'b -> bool) -> 'a t -> 'b t -> bool
+  val for_all2 : f:('a -> 'b -> bool) -> 'a t -> 'b t -> bool
     (** Succeeds if all pairs of elements satisfy the predicate.
         Ignores elements of an iterator if the other runs dry. *)
 
-  val exists2 : ('a -> 'b -> bool) -> 'a t -> 'b t -> bool
+  val exists2 : f:('a -> 'b -> bool) -> 'a t -> 'b t -> bool
     (** Succeeds if some pair of elements satisfy the predicate.
         Ignores elements of an iterator if the other runs dry. *)
 
-  val zip_with : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val zip_with : f:('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
     (** Combine common part of the gens (stops when one is exhausted) *)
 
   val zip : 'a t -> 'b t -> ('a * 'b) t

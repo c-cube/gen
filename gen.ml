@@ -94,22 +94,22 @@ let get_exn gen =
 
 let junk gen = ignore (gen ())
 
-let rec fold f acc gen =
+let rec fold ~f ~init gen =
   match gen () with
-  | None -> acc
-  | Some x -> fold f (f acc x) gen
+  | None -> init
+  | Some x -> fold ~f ~init:(f init x) gen
 
 (*$Q
   (Q.list Q.small_int) (fun l -> \
-    of_list l |> fold (fun l x->x::l) [] = List.rev l)
+    of_list l |> fold ~f:(fun l x->x::l) ~init:[] = List.rev l)
 *)
 
-let reduce f g =
-  let acc = match g () with
+let reduce ~f g =
+  let init = match g () with
     | None -> raise (Invalid_argument "reduce")
     | Some x -> x
   in
-  fold f acc g
+  fold ~f ~init g
 
 (* Dual of {!fold}, with a deconstructing operation *)
 let unfold f acc =
@@ -140,12 +140,12 @@ let init ?(limit=max_int) f =
   init ~limit:5 (fun i->i) |> to_list = [0;1;2;3;4]
 *)
 
-let rec iter f gen =
+let rec iter ~f gen =
   match gen() with
   | None -> ()
-  | Some x -> f x; iter f gen
+  | Some x -> f x; iter ~f gen
 
-let iteri f gen =
+let iteri ~f gen =
   let rec iteri i = match gen() with
   | None -> ()
   | Some x -> f i x; iteri (i+1)
@@ -162,7 +162,7 @@ let is_empty gen = match gen () with
 *)
 
 let length gen =
-  fold (fun acc _ -> acc + 1) 0 gen
+  fold ~f:(fun acc _ -> acc + 1) ~init:0 gen
 
 (*$Q
   (Q.list Q.small_int) (fun l -> \
@@ -177,14 +177,14 @@ module RunState = struct
     | Stop
 end
 
-let scan f acc g =
+let scan ~f ~init g =
   let open RunState in
   let state = ref Init in
   fun () ->
     match !state with
     | Init ->
-        state := Run acc;
-        Some acc
+        state := Run init;
+        Some init
     | Stop -> None
     | Run acc ->
         match g() with
@@ -195,7 +195,7 @@ let scan f acc g =
             Some acc'
 
 (*$T scan
-  scan (fun acc x -> x+1::acc) [] (1--5) |> to_list \
+  scan ~f:(fun acc x -> x+1::acc) ~init:[] (1--5) |> to_list \
     = [[]; [2]; [3;2]; [4;3;2]; [5;4;3;2]; [6;5;4;3;2]]
 *)
 
@@ -221,7 +221,7 @@ let unfold_scan f acc g =
 
 (** {3 Lazy} *)
 
-let map f gen =
+let map ~f gen =
   let stop = ref false in
   fun () ->
     if !stop then None
@@ -232,14 +232,14 @@ let map f gen =
 (*$Q map
   (Q.list Q.small_int) (fun l -> \
     let f x = x*2 in \
-    of_list l |> map f |> to_list = List.map f l)
+    of_list l |> map ~f |> to_list = List.map f l)
 *)
 
-let fold_map f s gen =
-  map (let state = ref s in fun x -> state := f (!state) x; !state) gen
+let fold_map ~f ~init gen =
+  map ~f:(let state = ref init in fun x -> state := f (!state) x; !state) gen
 
 (*$T
-  fold_map (+) 0 (1--3) |> to_list = [1;3;6]
+  fold_map ~f:(+) ~init:0 (1--3) |> to_list = [1;3;6]
 *)
 
 let append gen1 gen2 =
@@ -276,7 +276,7 @@ let flatten next_gen =
   in
   next
 
-let flat_map f next_elem =
+let flat_map ~f next_elem =
   let open RunState in
   let state = ref Init in
   let rec next() =
@@ -299,10 +299,10 @@ let flat_map f next_elem =
 (*$Q flat_map
   (Q.list Q.small_int) (fun l -> \
     let f x = of_list [x;x*2] in \
-    eq (map f (of_list l) |> flatten) (flat_map f (of_list l)))
+    eq (map ~f (of_list l) |> flatten) (flat_map ~f (of_list l)))
 *)
 
-let mem ?(eq=(=)) x gen =
+let mem ?(eq=(=)) ~x gen =
   let rec mem eq x gen =
     match gen() with
     | Some y -> eq x y || mem eq x gen
@@ -376,37 +376,37 @@ let take_nth n gen =
     | Some _ -> incr i; next()
   in next
 
-let filter p gen =
+let filter ~f gen =
   let rec next () =
     (* wrap exception into option, for next to be tailrec *)
     match gen() with
     | None -> None
     | (Some x) as res ->
-      if p x
+      if f x
         then res (* yield element *)
         else next ()  (* discard element *)
   in next
 
 (*$T
-  filter (fun x ->x mod 2 = 0) (1--10) |> to_list = [2;4;6;8;10]
+  filter ~f:(fun x ->x mod 2 = 0) (1--10) |> to_list = [2;4;6;8;10]
 *)
 
-let take_while p gen =
+let take_while ~f gen =
   let stop = ref false in
   fun () ->
     if !stop
     then None
     else match gen() with
     | (Some x) as res ->
-        if p x then res else (stop := true; None)
+        if f x then res else (stop := true; None)
     | None -> stop:=true; None
 
 (*$T
-  take_while (fun x ->x<10) (1--1000) |> eq (1--9)
+  take_while ~f:(fun x ->x<10) (1--1000) |> eq (1--9)
 *)
 
-let fold_while f s gen =
-  let state = ref s in
+let fold_while ~f ~init gen =
+  let state = ref init in
   let rec consume gen = match gen() with
      | None -> ()
      | Some x ->
@@ -420,7 +420,7 @@ let fold_while f s gen =
   !state
 
 (*$T
-  fold_while (fun acc b -> if b then acc+1, `Continue else acc, `Stop) 0 \
+  fold_while ~f:(fun acc b -> if b then acc+1, `Continue else acc, `Stop) ~init:0 \
     (of_list [true;true;false;true]) = 2
 *)
 
@@ -440,7 +440,7 @@ end
       - if no more elements, goto stop
     Stop: just return None
 *)
-let drop_while p gen =
+let drop_while ~f gen =
   let open DropWhileState in
   let state = ref Drop in
   let rec next () =
@@ -450,7 +450,7 @@ let drop_while p gen =
         begin match gen () with
         | None -> state := Stop; None
         | (Some x) as res ->
-            if p x then next() else (state:=Yield; res)
+            if f x then next() else (state:=Yield; res)
         end
     | Yield ->
         begin match gen () with
@@ -460,10 +460,10 @@ let drop_while p gen =
   in next
 
 (*$T
-  drop_while (fun x-> x<10) (1--20) |> eq (10--20)
+  drop_while ~f:(fun x-> x<10) (1--20) |> eq (10--20)
 *)
 
-let filter_map f gen =
+let filter_map ~f gen =
   (* tailrec *)
   let rec next () =
     match gen() with
@@ -475,7 +475,7 @@ let filter_map f gen =
   in next
 
 (*$T
-  filter_map (fun x-> if x mod 2 = 0 then Some (string_of_int x) else None) (1--10) \
+  filter_map ~f:(fun x-> if x mod 2 = 0 then Some (string_of_int x) else None) (1--10) \
     |> to_list = List.map string_of_int [2;4;6;8;10]
 *)
 
@@ -531,7 +531,7 @@ let unzip gen =
 
 (* [partition p l] returns the elements that satisfy [p],
    and the elements that do not satisfy [p] *)
-let partition p gen =
+let partition ~f gen =
   let qtrue = Queue.create () in
   let qfalse = Queue.create () in
   let stop = ref false in
@@ -540,7 +540,7 @@ let partition p gen =
       then if !stop then None
       else match gen() with
       | (Some x) as res ->
-        if p x then res else (Queue.push x qfalse; nexttrue())
+        if f x then res else (Queue.push x qfalse; nexttrue())
       | None -> stop:=true; None
     else Some (Queue.pop qtrue)
   and nextfalse() =
@@ -548,33 +548,33 @@ let partition p gen =
       then if !stop then None
       else match gen() with
       | (Some x) as res ->
-        if p x then (Queue.push x qtrue; nextfalse()) else res
+        if f x then (Queue.push x qtrue; nextfalse()) else res
       | None -> stop:= true; None
     else Some (Queue.pop qfalse)
   in
   nexttrue, nextfalse
 
 (*$T
-  partition (fun x -> x mod 2 = 0) (1--10) |> \
+  partition ~f:(fun x -> x mod 2 = 0) (1--10) |> \
     (fun (x,y)->to_list x, to_list y) = ([2;4;6;8;10], [1;3;5;7;9])
 *)
 
-let rec for_all p gen =
+let rec for_all ~f gen =
   match gen() with
   | None -> true
-  | Some x -> p x && for_all p gen
+  | Some x -> f x && for_all ~f gen
 
-let rec exists p gen =
+let rec exists ~f gen =
   match gen() with
   | None -> false
-  | Some x -> p x || exists p gen
+  | Some x -> f x || exists ~f gen
 
 let min ?(lt=fun x y -> x < y) gen =
-  let first = match gen () with
+  let init = match gen () with
     | Some x -> x
     | None -> raise (Invalid_argument "min")
   in
-  fold (fun min x -> if lt x min then x else min) first gen
+  fold ~f:(fun min x -> if lt x min then x else min) ~init gen
 
 (*$T
   min (of_list [1;4;6;0;11; -2]) = ~-2
@@ -582,11 +582,11 @@ let min ?(lt=fun x y -> x < y) gen =
 *)
 
 let max ?(lt=fun x y -> x < y) gen =
-  let first = match gen () with
+  let init = match gen () with
     | Some x -> x
     | None -> raise (Invalid_argument "max")
   in
-  fold (fun max x -> if lt max x then x else max) first gen
+  fold ~f:(fun max x -> if lt max x then x else max) ~init gen
 
 (*$T
   max (of_list [1;4;6;0;11; -2]) = 11
@@ -626,14 +626,14 @@ let compare ?cmp gen1 gen2 = lexico ?cmp gen1 gen2
     sign (compare (of_list l1)(of_list l2)) = sign (Pervasives.compare l1 l2))
 *)
 
-let rec find p e = match e () with
+let rec find ~f e = match e () with
   | None -> None
-  | Some x when p x -> Some x
-  | Some _ -> find p e
+  | Some x when f x -> Some x
+  | Some _ -> find ~f e
 
 (*$T
-   find (fun x -> x>=5) (1--10) = Some 5
-   find (fun x -> x>5) (1--4) = None
+   find ~f:(fun x -> x>=5) (1--10) = Some 5
+   find ~f:(fun x -> x>5) (1--4) = None
 *)
 
 let sum e =
@@ -648,41 +648,41 @@ let sum e =
 
 (** {2 Multiple Iterators} *)
 
-let map2 f e1 e2 =
+let map2 ~f e1 e2 =
   fun () -> match e1(), e2() with
   | Some x, Some y -> Some (f x y)
   | _ -> None
 
 (*$T
-  map2 (+) (1--5) (1--4) |> eq (of_list [2;4;6;8])
-  map2 (+) (1--5) (repeat 0) |> eq (1--5)
+  map2 ~f:(+) (1--5) (1--4) |> eq (of_list [2;4;6;8])
+  map2 ~f:(+) (1--5) (repeat 0) |> eq (1--5)
 *)
 
-let rec iter2 f e1 e2 =
+let rec iter2 ~f e1 e2 =
   match e1(), e2() with
-  | Some x, Some y -> f x y; iter2 f e1 e2
+  | Some x, Some y -> f x y; iter2 ~f e1 e2
   | _ -> ()
 
 (*$T iter2
-  let r = ref 0 in iter2 (fun _ _ -> incr r) (1--10) (4--6); !r = 3
+  let r = ref 0 in iter2 ~f:(fun _ _ -> incr r) (1--10) (4--6); !r = 3
 *)
 
-let rec fold2 f acc e1 e2 =
+let rec fold2 ~f ~init e1 e2 =
   match e1(), e2() with
-  | Some x, Some y -> fold2 f (f acc x y) e1 e2
-  | _ -> acc
+  | Some x, Some y -> fold2 ~f ~init:(f init x y) e1 e2
+  | _ -> init
 
-let rec for_all2 p e1 e2 =
+let rec for_all2 ~f e1 e2 =
   match e1(), e2() with
-  | Some x, Some y -> p x y && for_all2 p e1 e2
+  | Some x, Some y -> f x y && for_all2 ~f e1 e2
   | _ -> true
 
-let rec exists2 p e1 e2 =
+let rec exists2 ~f e1 e2 =
   match e1(), e2() with
-  | Some x, Some y -> p x y || exists2 p e1 e2
+  | Some x, Some y -> f x y || exists2 ~f e1 e2
   | _ -> false
 
-let zip_with f a b =
+let zip_with ~f a b =
   let stop = ref false in
   fun () ->
     if !stop then None
@@ -690,11 +690,11 @@ let zip_with f a b =
     | Some xa, Some xb -> Some (f xa xb)
     | _ -> stop:=true; None
 
-let zip a b = zip_with (fun x y -> x,y) a b
+let zip a b = zip_with ~f:(fun x y -> x,y) a b
 
 (*$Q
   (Q.list Q.small_int) (fun l -> \
-    zip_with (fun x y->x,y) (of_list l) (of_list l) \
+    zip_with ~f:(fun x y->x,y) (of_list l) (of_list l) \
       |> unzip |> fst |> to_list = l)
 *)
 
@@ -1119,7 +1119,7 @@ let uniq ?(eq=(=)) gen =
 let sort ?(cmp=Pervasives.compare) gen =
   (* build heap *)
   let h = Heap.empty ~cmp in
-  iter (Heap.insert h) gen;
+  iter ~f:(Heap.insert h) gen;
   fun () ->
     if Heap.is_empty h
       then None
@@ -1161,7 +1161,7 @@ let chunks n e =
   next
 
 (*$T
-  chunks 25 (0--100) |> map Array.to_list |> to_list = \
+  chunks 25 (0--100) |> map ~f:Array.to_list |> to_list = \
     List.map to_list [(0--24); (25--49);(50--74);(75--99);(100--100)]
 *)
 
@@ -1223,7 +1223,7 @@ let permutations g =
     | _, [] -> assert false
     | _, y::tail -> y :: insert x (n-1) tail
   in
-  let l = fold (fun acc x->x::acc) [] g in
+  let l = fold ~f:(fun acc x->x::acc) ~init:[] g in
   next (make_machine (List.length l) l)
 
 (*$T permutations
@@ -1273,7 +1273,7 @@ end
 
 let permutations_heap g =
   let open HeapPermState in
-  let l = fold (fun acc x->x::acc) [] g in
+  let l = fold ~f:(fun acc x->x::acc) ~init:[] g in
   let a = Array.of_list l in
   let rec next st () = match st.n with
     | 0 ->
@@ -1353,11 +1353,11 @@ let combinations n g =
             next m ()
         | Some l -> Some (x::l)
   in
-  let l = fold (fun acc x->x::acc) [] g in
+  let l = fold ~f:(fun acc x->x::acc) ~init:[] g in
   next (make_state n l)
 
 (*$T
-  combinations 2 (1--4) |> map (List.sort Pervasives.compare) \
+  combinations 2 (1--4) |> map ~f:(List.sort Pervasives.compare) \
     |> to_list |> List.sort Pervasives.compare = \
     [[1;2]; [1;3]; [1;4]; [2;3]; [2;4]; [3;4]]
   combinations 0 (1--4) |> to_list = [[]]
@@ -1394,15 +1394,15 @@ let power_set g =
         m.st <- Add (x,m');
         Some (x::l)
   in
-  let l = fold (fun acc x->x::acc) [] g in
+  let l = fold ~f:(fun acc x->x::acc) ~init:[] g in
   next (make_state l)
 
 (*$T
-  power_set (1--3) |> map (List.sort Pervasives.compare) \
+  power_set (1--3) |> map ~f:(List.sort Pervasives.compare) \
     |> to_list |> List.sort Pervasives.compare = \
     [[]; [1]; [1;2]; [1;2;3]; [1;3]; [2]; [2;3]; [3]]
   power_set empty |> to_list = [[]]
-  power_set (singleton 1) |> map (List.sort Pervasives.compare) \
+  power_set (singleton 1) |> map ~f:(List.sort Pervasives.compare) \
     |> to_list |> List.sort Pervasives.compare = [[]; [1]]
 *)
 
@@ -1416,7 +1416,7 @@ let of_list l =
     | x::l' -> l := l'; Some x
 
 let to_rev_list gen =
-  fold (fun acc x -> x :: acc) [] gen
+  fold ~f:(fun acc x -> x :: acc) ~init:[] gen
 
 (*$Q
   (Q.list Q.small_int) (fun l -> \
@@ -1466,7 +1466,7 @@ let of_string ?(start=0) ?len s =
       else (let x = s.[!i] in incr i; Some x)
 
 let to_buffer buf g =
-  iter (Buffer.add_char buf) g
+  iter ~f:(Buffer.add_char buf) g
 
 let to_string s =
   let buf = Buffer.create 16 in
@@ -1510,9 +1510,9 @@ let pp ?(start="") ?(stop="") ?(sep=",") ?(horizontal=false) pp_elem formatter g
 module Infix = struct
   let (--) = int_range
 
-  let (>>=) x f = flat_map f x
-  let (>>|) x f = map f x
-  let (>|=) x f = map f x
+  let (>>=) x f = flat_map ~f x
+  let (>>|) x f = map ~f x
+  let (>|=) x f = map ~f x
 end
 
 include Infix
@@ -1549,31 +1549,31 @@ module Restart = struct
 
   let is_empty e = is_empty (e ())
 
-  let fold f acc e = fold f acc (e ())
+  let fold ~f ~init e = fold ~f ~init (e ())
 
-  let reduce f e = reduce f (e ())
+  let reduce ~f e = reduce ~f (e ())
 
-  let scan f acc e () = scan f acc (e ())
+  let scan ~f ~init e () = scan ~f ~init (e ())
 
   let unfold_scan f acc e () = unfold_scan f acc (e())
 
-  let iter f e = iter f (e ())
+  let iter ~f e = iter ~f (e ())
 
-  let iteri f e = iteri f (e ())
+  let iteri ~f e = iteri ~f (e ())
 
   let length e = length (e ())
 
-  let map f e () = map f (e ())
+  let map ~f e () = map ~f (e ())
 
-  let fold_map f s e () = fold_map f s (e ())
+  let fold_map ~f ~init e () = fold_map ~f ~init (e ())
 
   let append e1 e2 () = append (e1 ()) (e2 ())
 
   let flatten e () = flatten (e ())
 
-  let flat_map f e () = flat_map f (e ())
+  let flat_map ~f e () = flat_map ~f (e ())
 
-  let mem ?eq x e = mem ?eq x (e ())
+  let mem ?eq ~x e = mem ?eq ~x (e ())
 
   let take n e () = take n (e ())
 
@@ -1583,47 +1583,47 @@ module Restart = struct
 
   let take_nth n e () = take_nth n (e ())
 
-  let filter p e () = filter p (e ())
+  let filter ~f e () = filter ~f (e ())
 
-  let take_while p e () = take_while p (e ())
+  let take_while ~f e () = take_while ~f (e ())
 
-  let fold_while f s e = fold_while f s (e ())
+  let fold_while ~f ~init e = fold_while ~f ~init (e ())
 
-  let drop_while p e () = drop_while p (e ())
+  let drop_while ~f e () = drop_while ~f (e ())
 
-  let filter_map f e () = filter_map f (e ())
+  let filter_map ~f e () = filter_map ~f (e ())
 
-  let zip_with f e1 e2 () = zip_with f (e1 ()) (e2 ())
+  let zip_with ~f e1 e2 () = zip_with ~f (e1 ()) (e2 ())
 
   let zip e1 e2 () = zip (e1 ()) (e2 ())
 
   let zip_index e () = zip_index (e ())
 
-  let unzip e = map fst e, map snd e
+  let unzip e = map ~f:fst e, map ~f:snd e
 
-  let partition p e =
-    filter p e, filter (fun x -> not (p x)) e
+  let partition ~f e =
+    filter ~f e, filter ~f:(fun x -> not (f x)) e
 
-  let for_all p e =
-    for_all p (e ())
+  let for_all ~f e =
+    for_all ~f (e ())
 
-  let exists p e =
-    exists p (e ())
+  let exists ~f e =
+    exists ~f (e ())
 
-  let for_all2 p e1 e2 =
-    for_all2 p (e1 ()) (e2 ())
+  let for_all2 ~f e1 e2 =
+    for_all2 ~f (e1 ()) (e2 ())
 
-  let exists2 p e1 e2 =
-    exists2 p (e1 ()) (e2 ())
+  let exists2 ~f e1 e2 =
+    exists2 ~f (e1 ()) (e2 ())
 
-  let map2 f e1 e2 () =
-    map2 f (e1()) (e2())
+  let map2 ~f e1 e2 () =
+    map2 ~f (e1()) (e2())
 
-  let iter2 f e1 e2 =
-    iter2 f (e1()) (e2())
+  let iter2 ~f e1 e2 =
+    iter2 ~f (e1()) (e2())
 
-  let fold2 f acc e1 e2 =
-    fold2 f acc (e1()) (e2())
+  let fold2 ~f ~init e1 e2 =
+    fold2 ~f ~init (e1()) (e2())
 
   let min ?lt e = min ?lt (e ())
 
@@ -1638,7 +1638,7 @@ module Restart = struct
 
   let sum e = sum (e())
 
-  let find f e = find f (e())
+  let find ~f e = find ~f (e())
 
   let merge e () = merge (e ())
 
@@ -1705,9 +1705,9 @@ module Restart = struct
   module Infix = struct
     let (--) = int_range
 
-    let (>>=) x f = flat_map f x
-    let (>>|) x f = map f x
-    let (>|=) x f = map f x
+    let (>>=) x f = flat_map ~f x
+    let (>>|) x f = map ~f x
+    let (>|=) x f = map ~f x
   end
 
   include Infix
@@ -1763,7 +1763,7 @@ module IO = struct
     let oc = open_out_gen flags mode filename in
     try
       iteri
-        (fun i s ->
+        ~f:(fun i s ->
           if i>0 then output_string oc sep;
           output oc s 0 (String.length s)
         ) g;
@@ -1775,7 +1775,7 @@ module IO = struct
   let write ?(mode=0o644) ?(flags=[Open_creat;Open_wronly]) filename g =
     let oc = open_out_gen flags mode filename in
     try
-      iter (fun c -> output_char oc c) g;
+      iter ~f:(fun c -> output_char oc c) g;
       close_out oc
     with e ->
       close_out oc;
