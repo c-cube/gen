@@ -1,7 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8fe62a4e0295f5f9101e33e11fc1dbef)
+# DO NOT EDIT (digest: ab0fbd87c3864974e6d6710afa299f64)
 Gen
+GenLabels
 GenClone
 GenMList
 Gen_intf
+GenLabels_intf
 # OASIS_STOP
