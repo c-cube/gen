@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Label version of {!Gen}
 
-@since NEXT_RELEASE *)
+@since 0.2.4 *)
 
 (** {2 Global type declarations} *)
 

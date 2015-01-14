@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 4d1a6549cc3c8399e4070f03604930c9)
-version = "0.2.3"
+# DO NOT EDIT (digest: 0b1a9888449ec73967e6ada12ada4023)
+version = "0.2.4"
 description = "Simple, efficient iterators for OCaml"
 archive(byte) = "gen.cma"
 archive(byte, plugin) = "gen.cma"

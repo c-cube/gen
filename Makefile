@@ -57,3 +57,17 @@ update_next_tag:
 	@echo "update version to $(VERSION)..."
 	sed -i "s/NEXT_VERSION/$(VERSION)/g" *.ml *.mli
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" *.ml *.mli
+
+NAME_VERSION := gen.$(VERSION)
+URL := https://github.com/c-cube/gen/archive/$(VERSION).tar.gz
+
+release:
+	git tag -a $(VERSION) -m "Version $(VERSION)."
+	git push origin $(VERSION)
+	opam publish prepare $(NAME_VERSION) $(URL)
+	cp descr $(NAME_VERSION)
+	echo "submit?"
+	@read
+	opam publish submit $(NAME_VERSION)
+
+.PHONY: update_next_tag release

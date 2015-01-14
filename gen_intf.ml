@@ -101,7 +101,7 @@ module type S = sig
     (** Lazy fold and map. No iteration is performed now, the function will be
         called when the result is traversed. The result is
         an iterator over the successive states of the fold.
-        @since NEXT_RELEASE *)
+        @since 0.2.4 *)
 
   val append : 'a t -> 'a t -> 'a t
     (** Append the two gens; the result contains the elements of the first,
@@ -142,7 +142,7 @@ module type S = sig
 
   val fold_while : ('a -> 'b -> 'a * [`Stop | `Continue]) -> 'a -> 'b t -> 'a
     (** Fold elements until (['a, `Stop]) is indicated by the accumulator.
-        @since NEXT_RELEASE *)
+        @since 0.2.4 *)
 
   val drop_while : ('a -> bool) -> 'a t -> 'a t
     (** Drop elements while they satisfy the predicate. The initial generator
