@@ -76,7 +76,7 @@ module type S = sig
 
   val scan : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b t
     (** Like {!fold}, but keeping successive values of the accumulator.
-        Consumes the generator. *)
+        Consumes the generator. @deprecated use {!fold_map} instead. *)
 
   val unfold_scan : ('b -> 'a -> 'b * 'c) -> 'b -> 'a t -> 'c t
     (** A mix of {!unfold} and {!scan}. The current state is combined with

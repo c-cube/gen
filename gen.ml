@@ -177,7 +177,7 @@ module RunState = struct
     | Stop
 end
 
-let scan f acc g =
+let fold_map f acc g =
   let open RunState in
   let state = ref Init in
   fun () ->
@@ -194,8 +194,8 @@ let scan f acc g =
             state := Run acc';
             Some acc'
 
-(*$T scan
-  scan (fun acc x -> x+1::acc) [] (1--5) |> to_list \
+(*$T fold_map
+  fold_map (fun acc x -> x+1::acc) [] (1--5) |> to_list \
     = [[]; [2]; [3;2]; [4;3;2]; [5;4;3;2]; [6;5;4;3;2]]
 *)
 
@@ -235,11 +235,10 @@ let map f gen =
     of_list l |> map f |> to_list = List.map f l)
 *)
 
-let fold_map f s gen =
-  map (let state = ref s in fun x -> state := f (!state) x; !state) gen
+let scan = fold_map
 
 (*$T
-  fold_map (+) 0 (1--3) |> to_list = [1;3;6]
+  scan (+) 0 (1--3) |> to_list = [1;3;6]
 *)
 
 let append gen1 gen2 =
