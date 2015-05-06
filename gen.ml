@@ -1173,6 +1173,8 @@ let chunks n e =
     - obtain the next list of [g]
 *)
 
+(* TODO: check https://en.wikipedia.org/wiki/Heap's_algorithm , might be better *)
+
 module PermState = struct
   type 'a state =
     | Done
