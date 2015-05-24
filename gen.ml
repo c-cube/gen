@@ -1747,39 +1747,65 @@ let persistent_lazy ?caching ?max_chunk_size gen =
 (** {2 Basic IO} *)
 
 module IO = struct
-  let with_in ?(mode=0o644) ?(flags=[]) filename f =
+  let with_file_in ?(mode=0o644) ?(flags=[]) filename f =
     let ic = open_in_gen flags mode filename in
-    let next() =
-      try Some (input_char ic)
-      with End_of_file -> None
-    in
     try
-      let x = f next in
+      let x = f ic in
       close_in_noerr ic;
       x
     with e ->
       close_in_noerr ic;
       raise e
 
-  let write_str ?(mode=0o644) ?(flags=[Open_creat;Open_wronly]) ?(sep="") filename g =
+  let with_in ?mode ?flags filename f =
+    with_file_in ?mode ?flags filename
+      (fun ic ->
+        let next() =
+          try Some (input_char ic)
+          with End_of_file -> None
+        in
+        f next
+      )
+
+  let with_lines ?mode ?flags filename f =
+    with_file_in ?mode ?flags filename
+      (fun ic ->
+         let next() =
+           try Some (input_line ic)
+           with End_of_file -> None
+         in
+         f next
+      )
+
+  let with_file_out ?(mode=0o644) ?(flags=[Open_creat;Open_wronly]) filename f =
     let oc = open_out_gen flags mode filename in
     try
-      iteri
-        (fun i s ->
-          if i>0 then output_string oc sep;
-          output oc s 0 (String.length s)
-        ) g;
-      close_out oc
-    with e ->
+      let x = f oc in
       close_out oc;
+      x
+    with e ->
+      close_out_noerr oc;
       raise e
 
-  let write ?(mode=0o644) ?(flags=[Open_creat;Open_wronly]) filename g =
-    let oc = open_out_gen flags mode filename in
-    try
-      iter (fun c -> output_char oc c) g;
-      close_out oc
-    with e ->
-      close_out oc;
-      raise e
+  let write_str ?mode ?flags ?(sep="") filename g =
+    with_file_out ?mode ?flags filename
+      (fun oc ->
+        iteri
+          (fun i s ->
+            if i>0 then output_string oc sep;
+            output oc s 0 (String.length s)
+          ) g
+      )
+
+  let write ?mode ?flags filename g =
+    with_file_out ?mode ?flags filename
+      (fun oc ->
+         iter (fun c -> output_char oc c) g
+      )
+
+  let write_lines ?mode ?flags filename g =
+    with_file_out ?mode ?flags filename
+      (fun oc ->
+         iter (fun s -> output_string oc s; output_char oc '\n') g
+      )
 end

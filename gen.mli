@@ -112,15 +112,23 @@ module IO : sig
   val with_in : ?mode:int -> ?flags:open_flag list ->
                 string ->
                 (char t -> 'a) -> 'a
-  (** [read filename f] opens [filename] and calls [f g],
+  (** [with_in filename f] opens [filename] and calls [f g],
       where [g] is a generator of characters from the file.
       The generator is only valid within
       the scope in which [f] is called. *)
 
+  val with_lines : ?mode:int -> ?flags:open_flag list ->
+                    string -> (string t -> 'a) -> 'a
+  (** [with_lines filename f] opens file [filename] and calls [f g],
+      where [g] is a generator that iterates on the lines from the file.
+      Do not use the generator outside of the scope of [f]
+      @since NEXT_RELEASE *)
+
   val write_str : ?mode:int -> ?flags:open_flag list ->  ?sep:string ->
                  string -> string t -> unit
   (** [write_to filename g] writes all strings from [g] into the given
-      file. It takes care of opening and closing the file.
+      file. It takes care of opening and closing the file. Does not
+      add [sep] after the last string.
       @param mode default [0o644]
       @param flags used by [open_out_gen]. Default: [[Open_creat;Open_wronly]].
       @param sep separator between each string (e.g. newline) *)
@@ -128,4 +136,10 @@ module IO : sig
   val write : ?mode:int -> ?flags:open_flag list ->
               string -> char t -> unit
   (** Same as {!write_str} but with individual characters *)
+
+  val write_lines : ?mode:int -> ?flags:open_flag list ->
+                    string -> string t -> unit
+  (** [write_lines file g] is similar to [write_str file g ~sep:"\n"] but
+      also adds ['\n'] at the end of the file
+      @since NEXT_RELEASE *)
 end
