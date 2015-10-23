@@ -157,5 +157,6 @@ let () =
     "persistent" @>>
     app_ints bench_n [100; 1_000; 10_000; 100_000]
   );
-  B.Tree.run_global ()
+  try B.Tree.run_global ()
+  with Arg.Help msg -> print_endline msg
 
