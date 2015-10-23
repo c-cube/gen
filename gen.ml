@@ -824,6 +824,7 @@ module Heap = struct
     mutable tree : 'a tree;
     cmp : 'a -> 'a -> int;
   } (** A pairing tree heap with the given comparison function *)
+
   and 'a tree =
     | Empty
     | Node of 'a * 'a tree * 'a tree
@@ -1716,6 +1717,17 @@ module Restart = struct
 
   let pp ?start ?stop ?sep ?horizontal pp_elem fmt e =
     pp ?start ?stop ?sep ?horizontal pp_elem fmt (e ())
+
+  let of_gen ?caching ?max_chunk_size g =
+    let cached = ref None in
+    fun () ->
+      match !cached with
+      | Some mlist -> GenMList.to_gen mlist
+      | None ->
+          let mlist = GenMList.of_gen_lazy ?caching ?max_chunk_size g in
+          cached := Some mlist;
+          GenMList.to_gen mlist
+
 end
 
 (** {2 Generator functions} *)

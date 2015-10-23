@@ -82,6 +82,13 @@ module Restart : sig
   val lift : ('a gen -> 'b) -> 'a t -> 'b
 
   val lift2 : ('a gen -> 'b gen -> 'c) -> 'a t -> 'b t -> 'c
+
+  val of_gen : ?caching:bool -> ?max_chunk_size:int ->
+               'a gen -> 'a t
+  (** Use {!persistent_lazy} to convert a one-shot generator into a
+      restartable one.
+      See {!GenMList.of_gen_lazy} for more details on parameters.
+      @since NEXT_RELEASE *)
 end
 
 (** {2 Utils} *)
