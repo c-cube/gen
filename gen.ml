@@ -244,13 +244,12 @@ let fold_map f s gen =
 
 let append gen1 gen2 =
   let first = ref true in
-  let rec next() =
+  fun () ->
     if !first
     then match gen1() with
     | (Some _) as x -> x
-    | None -> first:=false; next()
+    | None -> first:=false; gen2()
     else gen2()
-  in next
 
 (*$Q
   (Q.pair (Q.list Q.small_int)(Q.list Q.small_int)) (fun (l1,l2) -> \
