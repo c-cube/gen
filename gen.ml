@@ -1488,6 +1488,48 @@ let int_range i j =
         Some x
       end
 
+let lines g =
+  let buf = Buffer.create 32 in
+  let stop = ref false in
+  let rec next() =
+    if !stop then None
+    else match g() with
+    | None -> stop := true;
+        (* only return a non-empty line *)
+        if Buffer.length buf =0 then None else Some (Buffer.contents buf)
+    | Some '\n' ->
+        let s = Buffer.contents buf in
+        Buffer.clear buf;
+        Some s
+    | Some c -> Buffer.add_char buf c; next ()
+  in
+  next
+
+(*$= & ~printer:Q.Print.(list string)
+  ["abc"; "de"; ""] (lines (of_string "abc\nde\n\n") |> to_list)
+*)
+
+let unlines g =
+  let st = ref `Next in
+  fun () -> match !st with
+    | `Stop -> None
+    | `Next ->
+        begin  match g() with
+          | None -> st := `Stop; None
+          | Some "" -> Some '\n' (* empty line *)
+          | Some s -> st := `Consume (s, 1); Some s.[0]
+        end
+    | `Consume (s, i) when i=String.length s ->
+        st := `Next;
+        Some '\n'
+    | `Consume (s, i) ->
+        st := `Consume (s, i+1); Some s.[i]
+
+(*$Q
+  Q.printable_string (fun s -> \
+    of_string s |> lines |> unlines |> to_string |> String.trim = String.trim s)
+*)
+
 let pp ?(start="") ?(stop="") ?(sep=",") ?(horizontal=false) pp_elem formatter gen =
   (if horizontal
     then Format.pp_open_hbox formatter ()
@@ -1704,6 +1746,9 @@ module Restart = struct
 
   let int_range i j () = int_range i j
 
+  let lines g () = lines (g())
+  let unlines g () = unlines (g())
+
   module Infix = struct
     let (--) = int_range
 
@@ -1726,7 +1771,6 @@ module Restart = struct
           let mlist = GenMList.of_gen_lazy ?caching ?max_chunk_size g in
           cached := Some mlist;
           GenMList.to_gen mlist
-
 end
 
 (** {2 Generator functions} *)

@@ -330,6 +330,14 @@ module type S = sig
     (** [int_range a b] generates integers between [a] and [b], included. [a]
         is assumed to be smaller than [b]. *)
 
+  val lines : char t -> string t
+  (** Group together chars belonging to the same line
+      @since NEXT_RELEASE *)
+
+  val unlines : string t -> char t
+  (** Explode lines into their chars, adding a ['\n'] after each one
+      @since NEXT_RELEASE *)
+
   module Infix : sig
     val (--) : int -> int -> int t
       (** Synonym for {! int_range} *)
