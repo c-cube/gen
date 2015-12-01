@@ -11,7 +11,10 @@ install: [
 remove: [
     ["ocamlfind" "remove" "gen"]
 ]
-depends: ["ocamlfind"]
+depends: [
+  "ocamlfind"
+  "ocamlbuild" {build}
+]
 tags: [ "gen" "iterator" "iter" "fold" ]
 homepage: "https://github.com/c-cube/gen/"
 doc: "http://cedeela.fr/~simon/software/gen/"
