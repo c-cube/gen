@@ -40,6 +40,10 @@ module type S = sig
   val singleton : 'a -> 'a t
     (** One-element generator *)
 
+  val return : 'a -> 'a t
+    (** Alias to {!singleton}
+        @since NEXT_RELEASE *)
+
   val repeat : 'a -> 'a t
     (** Repeat same element endlessly *)
 

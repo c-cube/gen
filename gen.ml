@@ -51,6 +51,8 @@ let singleton x =
   singleton "foo" |> to_list = ["foo"]
 *)
 
+let return = singleton
+
 let repeat x () = Some x
 
 (*$T repeat
@@ -1581,6 +1583,8 @@ module Restart = struct
   let empty () = empty
 
   let singleton x () = singleton x
+
+  let return = singleton
 
   let iterate x f () = iterate x f
 
