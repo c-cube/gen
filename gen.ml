@@ -290,8 +290,12 @@ let flat_map f next_elem =
   and get_next_gen() = match next_elem() with
     | None -> state:=Stop; None
     | Some x ->
-        try state := Run (f x); next()
-        with e -> state := Stop; raise e
+        begin try state := Run (f x)
+        with e ->
+          state := Stop;
+          raise e
+        end;
+        next()
   in
   next
 
@@ -299,6 +303,11 @@ let flat_map f next_elem =
   (Q.list Q.small_int) (fun l -> \
     let f x = of_list [x;x*2] in \
     eq (map f (of_list l) |> flatten) (flat_map f (of_list l)))
+*)
+
+(*$T
+  flat_map (fun x -> if x mod 1_500_000=0 then singleton x else empty) (1 -- 6_000_000) \
+    |> to_list = [1_500_000; 3_000_000; 4_500_000; 6_000_000]
 *)
 
 let mem ?(eq=(=)) x gen =
