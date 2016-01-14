@@ -15,7 +15,7 @@ Flag "bench"
   Default: false
 
 Library "gen"
-  Path:             .
+  Path:             src
   Pack:             false
   Modules:          Gen, GenLabels, GenClone, GenMList, Gen_intf, GenLabels_intf
 
