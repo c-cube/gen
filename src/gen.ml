@@ -1,27 +1,5 @@
-(*
-Copyright (c) 2013, Simon Cruanes
-All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.  Redistributions in binary
-form must reproduce the above copyright notice, this list of conditions and the
-following disclaimer in the documentation and/or other materials provided with
-the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*)
+(* This file is free software, part of gen. See file "license" for more details. *)
 
 (** {1 Restartable generators} *)
 
@@ -120,8 +98,8 @@ let unfold f acc =
     match f !acc with
     | None -> None
     | Some (x, acc') ->
-      acc := acc';
-      Some x
+        acc := acc';
+        Some x
 
 (*$T unfold
   unfold (fun (prev,cur) -> Some (prev, (cur,prev+cur))) (0,1) \
@@ -149,8 +127,8 @@ let rec iter f gen =
 
 let iteri f gen =
   let rec iteri i = match gen() with
-  | None -> ()
-  | Some x -> f i x; iteri (i+1)
+    | None -> ()
+    | Some x -> f i x; iteri (i+1)
   in
   iteri 0
 
@@ -228,8 +206,8 @@ let map f gen =
   fun () ->
     if !stop then None
     else match gen() with
-    | None -> stop:= true; None
-    | Some x -> Some (f x)
+      | None -> stop:= true; None
+      | Some x -> Some (f x)
 
 (*$Q map
   (Q.list Q.small_int) (fun l -> \
@@ -249,8 +227,8 @@ let append gen1 gen2 =
   fun () ->
     if !first
     then match gen1() with
-    | (Some _) as x -> x
-    | None -> first:=false; gen2()
+      | (Some _) as x -> x
+      | None -> first:=false; gen2()
     else gen2()
 
 (*$Q
@@ -266,10 +244,10 @@ let flatten next_gen =
     match !state with
     | Init -> get_next_gen()
     | Run gen ->
-      begin match gen () with
-      | None -> get_next_gen ()
-      | (Some _) as x -> x
-      end
+        begin match gen () with
+          | None -> get_next_gen ()
+          | (Some _) as x -> x
+        end
     | Stop -> None
   and get_next_gen() = match next_gen() with
     | None -> state := Stop; None
@@ -284,18 +262,18 @@ let flat_map f next_elem =
     match !state with
     | Init -> get_next_gen()
     | Run gen ->
-      begin match gen () with
-      | None -> get_next_gen ()
-      | (Some _) as x -> x
-      end
+        begin match gen () with
+          | None -> get_next_gen ()
+          | (Some _) as x -> x
+        end
     | Stop -> None
   and get_next_gen() = match next_elem() with
     | None -> state:=Stop; None
     | Some x ->
         begin try state := Run (f x)
-        with e ->
-          state := Stop;
-          raise e
+          with e ->
+            state := Stop;
+            raise e
         end;
         next()
   in
@@ -346,13 +324,13 @@ let drop n gen =
   let dropped = ref false in
   fun () ->
     if !dropped
-      then gen()
-      else begin
-        (* drop [n] elements and yield the next element *)
-        dropped := true;
-        __drop n gen;
-        gen()
-      end
+    then gen()
+    else begin
+      (* drop [n] elements and yield the next element *)
+      dropped := true;
+      __drop n gen;
+      gen()
+    end
 
 (*$Q
   (Q.pair Q.small_int (Q.list Q.small_int)) (fun (n,l) -> \
@@ -392,7 +370,7 @@ let filter p gen =
     match gen() with
     | None -> None
     | (Some x) as res ->
-      if p x
+        if p x
         then res (* yield element *)
         else next ()  (* discard element *)
   in next
@@ -407,9 +385,9 @@ let take_while p gen =
     if !stop
     then None
     else match gen() with
-    | (Some x) as res ->
-        if p x then res else (stop := true; None)
-    | None -> stop:=true; None
+      | (Some x) as res ->
+          if p x then res else (stop := true; None)
+      | None -> stop:=true; None
 
 (*$T
   take_while (fun x ->x<10) (1--1000) |> eq (1--9)
@@ -418,13 +396,13 @@ let take_while p gen =
 let fold_while f s gen =
   let state = ref s in
   let rec consume gen = match gen() with
-     | None -> ()
-     | Some x ->
-       let acc, cont = f !state x in
-       state := acc;
-       match cont with
-       | `Stop -> ()
-       | `Continue -> consume gen
+    | None -> ()
+    | Some x ->
+        let acc, cont = f !state x in
+        state := acc;
+        match cont with
+        | `Stop -> ()
+        | `Continue -> consume gen
   in
   consume gen;
   !state
@@ -458,14 +436,14 @@ let drop_while p gen =
     | Stop -> None
     | Drop ->
         begin match gen () with
-        | None -> state := Stop; None
-        | (Some x) as res ->
-            if p x then next() else (state:=Yield; res)
+          | None -> state := Stop; None
+          | (Some x) as res ->
+              if p x then next() else (state:=Yield; res)
         end
     | Yield ->
         begin match gen () with
-        | None -> state := Stop; None
-        | Some _ as res -> res
+          | None -> state := Stop; None
+          | Some _ as res -> res
         end
   in next
 
@@ -508,22 +486,22 @@ let unzip gen =
   let q2 = Queue.create () in
   let next_left () =
     if Queue.is_empty q1
-      then if !stop then None
+    then if !stop then None
       else match gen() with
-      | Some (x,y) ->
-        Queue.push y q2;
-        Some x
-      | None -> stop := true; None
+        | Some (x,y) ->
+            Queue.push y q2;
+            Some x
+        | None -> stop := true; None
     else Some (Queue.pop q1)
   in
   let next_right () =
     if Queue.is_empty q2
-      then if !stop then None
+    then if !stop then None
       else match gen() with
-      | Some (x,y) ->
-        Queue.push x q1;
-        Some y
-      | None -> stop := true; None
+        | Some (x,y) ->
+            Queue.push x q1;
+            Some y
+        | None -> stop := true; None
     else Some (Queue.pop q2)
   in
   next_left, next_right
@@ -547,19 +525,19 @@ let partition p gen =
   let stop = ref false in
   let rec nexttrue () =
     if Queue.is_empty qtrue
-      then if !stop then None
+    then if !stop then None
       else match gen() with
-      | (Some x) as res ->
-        if p x then res else (Queue.push x qfalse; nexttrue())
-      | None -> stop:=true; None
+        | (Some x) as res ->
+            if p x then res else (Queue.push x qfalse; nexttrue())
+        | None -> stop:=true; None
     else Some (Queue.pop qtrue)
   and nextfalse() =
     if Queue.is_empty qfalse
-      then if !stop then None
+    then if !stop then None
       else match gen() with
-      | (Some x) as res ->
-        if p x then (Queue.push x qtrue; nextfalse()) else res
-      | None -> stop:= true; None
+        | (Some x) as res ->
+            if p x then (Queue.push x qtrue; nextfalse()) else res
+        | None -> stop:= true; None
     else Some (Queue.pop qfalse)
   in
   nexttrue, nextfalse
@@ -622,8 +600,8 @@ let lexico ?(cmp=Pervasives.compare) gen1 gen2 =
     match gen1(), gen2() with
     | None, None -> 0
     | Some x1, Some x2 ->
-      let c = cmp x1 x2 in
-      if c <> 0 then c else lexico ()
+        let c = cmp x1 x2 in
+        if c <> 0 then c else lexico ()
     | Some _, None -> 1
     | None, Some _ -> -1
   in lexico ()
@@ -648,8 +626,8 @@ let rec find p e = match e () with
 
 let sum e =
   let rec sum acc = match e() with
-  | None -> acc
-  | Some x -> sum (x+acc)
+    | None -> acc
+    | Some x -> sum (x+acc)
   in sum 0
 
 (*$T
@@ -660,8 +638,8 @@ let sum e =
 
 let map2 f e1 e2 =
   fun () -> match e1(), e2() with
-  | Some x, Some y -> Some (f x y)
-  | _ -> None
+    | Some x, Some y -> Some (f x y)
+    | _ -> None
 
 (*$T
   map2 (+) (1--5) (1--4) |> eq (of_list [2;4;6;8])
@@ -697,8 +675,8 @@ let zip_with f a b =
   fun () ->
     if !stop then None
     else match a(), b() with
-    | Some xa, Some xb -> Some (f xa xb)
-    | _ -> stop:=true; None
+      | Some xa, Some xb -> Some (f xa xb)
+      | _ -> stop:=true; None
 
 let zip a b = zip_with (fun x y -> x,y) a b
 
@@ -724,8 +702,8 @@ module MergeState = struct
 end
 
 (* state machine starts at NewGen:
-  NewGen: use next_gen to push a new gen into the queue
-  Yield:
+   NewGen: use next_gen to push a new gen into the queue
+   Yield:
     while the queue is not empty:
       pop gen g from it
       if g is empty continue
@@ -733,10 +711,10 @@ end
         pop element x from g
         push g at back of queue
         yield x
-  YieldAndNew: mix of Yield and NewGen.
+   YieldAndNew: mix of Yield and NewGen.
     if next_gen is exhausted, goto Yield;
     if queue is empty, goto NewGen
-  Stop: do nothing
+   Stop: do nothing
 *)
 let merge next_gen =
   let open MergeState in
@@ -751,20 +729,20 @@ let merge next_gen =
         else
           let gen = Queue.pop state.gens in
           begin match gen () with
-          | None -> next()
-          | (Some _) as res ->
-              Queue.push gen state.gens;  (* put gen back in queue *)
-              res
-        end
+            | None -> next()
+            | (Some _) as res ->
+                Queue.push gen state.gens;  (* put gen back in queue *)
+                res
+          end
     | NewGen ->
         begin match next_gen() with
-        | None ->
-            state.state <- Yield;  (* exhausted *)
-            next()
-        | Some gen ->
-            Queue.push gen state.gens;
-            state.state <- YieldAndNew;
-            next()
+          | None ->
+              state.state <- Yield;  (* exhausted *)
+              next()
+          | Some gen ->
+              Queue.push gen state.gens;
+              state.state <- YieldAndNew;
+              next()
         end
     | YieldAndNew -> (* yield element from queue, then get a new generator *)
         if Queue.is_empty state.gens
@@ -772,11 +750,11 @@ let merge next_gen =
         else
           let gen = Queue.pop state.gens in
           begin match gen () with
-          | None -> state.state <- NewGen; next()
-          | (Some _) as res ->
-              Queue.push gen state.gens;
-              state.state <- NewGen;
-              res
+            | None -> state.state <- NewGen; next()
+            | (Some _) as res ->
+                Queue.push gen state.gens;
+                state.state <- NewGen;
+                res
           end
   in next
 
@@ -791,13 +769,13 @@ let intersection ?(cmp=Pervasives.compare) gen1 gen2 =
   let rec next () =
     match !x1, !x2 with
     | Some y1, Some y2 ->
-      let c = cmp y1 y2 in
-      if c = 0  (* equal elements, yield! *)
+        let c = cmp y1 y2 in
+        if c = 0  (* equal elements, yield! *)
         then (x1 := gen1(); x2 := gen2(); Some y1)
-      else if c < 0 (* drop y1 *)
+        else if c < 0 (* drop y1 *)
         then (x1 := gen1 (); next ())
-      else (* drop y2 *)
-        (x2 := gen2(); next ())
+        else (* drop y2 *)
+          (x2 := gen2(); next ())
     | _ -> None
   in next
 
@@ -813,15 +791,15 @@ let sorted_merge ?(cmp=Pervasives.compare) gen1 gen2 =
     match !x1, !x2 with
     | None, None -> None
     | (Some y1)as r1, ((Some y2) as r2) ->
-      if cmp y1 y2 <= 0
+        if cmp y1 y2 <= 0
         then (x1 := gen1 (); r1)
         else (x2 := gen2 (); r2)
     | (Some _)as r, None ->
-      x1 := gen1 ();
-      r
+        x1 := gen1 ();
+        r
     | None, ((Some _)as r) ->
-      x2 := gen2 ();
-      r
+        x2 := gen2 ();
+        r
 
 (*$T
   sorted_merge (of_list [1;2;2;3;5;10;100]) (of_list [2;4;5;6;11]) \
@@ -850,12 +828,12 @@ module Heap = struct
     | Node _ -> false
 
   let rec union ~cmp t1 t2 = match t1, t2 with
-  | Empty, _ -> t2
-  | _, Empty -> t1
-  | Node (x1, l1, r1), Node (x2, l2, r2) ->
-    if cmp x1 x2 <= 0
-      then Node (x1, union ~cmp t2 r1, l1)
-      else Node (x2, union ~cmp t1 r2, l2)
+    | Empty, _ -> t2
+    | _, Empty -> t1
+    | Node (x1, l1, r1), Node (x2, l2, r2) ->
+        if cmp x1 x2 <= 0
+        then Node (x1, union ~cmp t2 r1, l1)
+        else Node (x2, union ~cmp t1 r2, l2)
 
   let insert h x =
     h.tree <- union ~cmp:h.cmp (Node (x, Empty, Empty)) h.tree
@@ -863,8 +841,8 @@ module Heap = struct
   let pop h = match h.tree with
     | Empty -> raise Not_found
     | Node (x, l, r) ->
-      h.tree <- union ~cmp:h.cmp l r;
-      x
+        h.tree <- union ~cmp:h.cmp l r;
+        x
 end
 
 let sorted_merge_n ?(cmp=Pervasives.compare) l =
@@ -874,8 +852,8 @@ let sorted_merge_n ?(cmp=Pervasives.compare) l =
   (* add initial values *)
   List.iter
     (fun gen' -> match gen'() with
-    | Some x -> Heap.insert heap (x, gen')
-    | None -> ())
+       | Some x -> Heap.insert heap (x, gen')
+       | None -> ())
     l;
   fun () ->
     if Heap.is_empty heap then None
@@ -883,8 +861,8 @@ let sorted_merge_n ?(cmp=Pervasives.compare) l =
       let x, gen = Heap.pop heap in
       match gen() with
       | Some y ->
-        Heap.insert heap (y, gen);  (* insert next value *)
-        Some x
+          Heap.insert heap (y, gen);  (* insert next value *)
+          Some x
       | None -> Some x (* gen empty, drop it *)
     end
 
@@ -901,18 +879,18 @@ let round_robin ?(n=2) gen =
   let rec next i =
     let q = qs.(i) in
     if Queue.is_empty q
-      then update_to_i i  (* consume generator *)
-      else Some(Queue.pop q)
+    then update_to_i i  (* consume generator *)
+    else Some(Queue.pop q)
   (* consume [gen] until some element for [i]-th generator is
      available. *)
   and update_to_i i =
     match gen() with
     | None -> None
     | Some x ->
-      let j = !cur in
-      cur := (j+1) mod n;  (* move cursor to next generator *)
-      let q = qs.(j) in
-      if j = i
+        let j = !cur in
+        cur := (j+1) mod n;  (* move cursor to next generator *)
+        let q = qs.(j) in
+        if j = i
         then begin
           assert (Queue.is_empty q);
           Some x  (* return the element *)
@@ -940,17 +918,17 @@ let tee ?(n=2) gen =
   (* get next element for the i-th queue *)
   let rec next i =
     if Queue.is_empty qs.(i)
-      then
-        if !finished then None
-        else get_next i  (* consume generator *)
-      else Queue.pop qs.(i)
+    then
+      if !finished then None
+      else get_next i  (* consume generator *)
+    else Queue.pop qs.(i)
   (* consume one more element *)
   and get_next i = match gen() with
     | Some _ as res ->
-      for j = 0 to n-1 do
-        if j <> i then Queue.push res qs.(j)
-      done;
-      res
+        for j = 0 to n-1 do
+          if j <> i then Queue.push res qs.(j)
+        done;
+        res
     | None -> finished := true; None
   in
   (* generators *)
@@ -975,20 +953,20 @@ let interleave gen_a gen_b =
   let open InterleaveState in
   let state = ref (Both (gen_a, gen_b, ref true)) in
   let rec next() = match !state with
-  | Stop -> None
-  | Only g ->
-      begin match g() with
-        | None -> state := Stop; None
-        | (Some _) as res -> res
-      end
-  | Both (g1, g2, r) ->
-      match (if !r then g1() else g2()) with
-      | None ->
-          state := if !r then Only g2 else Only g1;
-          next()
-      | (Some _) as res ->
-          r := not !r; (* swap *)
-          res
+    | Stop -> None
+    | Only g ->
+        begin match g() with
+          | None -> state := Stop; None
+          | (Some _) as res -> res
+        end
+    | Both (g1, g2, r) ->
+        match (if !r then g1() else g2()) with
+        | None ->
+            state := if !r then Only g2 else Only g1;
+            next()
+        | (Some _) as res ->
+            r := not !r; (* swap *)
+            res
   in next
 
 (*$T
@@ -1012,8 +990,8 @@ let intersperse x gen =
     | Stop -> None
     | YieldElem res ->
         begin match gen() with
-        | None -> state := Stop
-        | Some _ as res' -> state := YieldSep res'
+          | None -> state := Stop
+          | Some _ as res' -> state := YieldSep res'
         end;
         res
     | YieldSep res ->
@@ -1034,38 +1012,38 @@ let product gena genb =
   let all_a = ref [] in
   let all_b = ref [] in
   (* cur: current state, i.e., what we have to do next. Can be stop,
-    getLeft/getRight (to obtain next element from first/second generator),
-    or prodLeft/prodRIght to compute the product of an element with a list
-    of already met elements *)
+     getLeft/getRight (to obtain next element from first/second generator),
+     or prodLeft/prodRIght to compute the product of an element with a list
+     of already met elements *)
   let cur = ref `GetLeft in
   let rec next () =
     match !cur with
     | `Stop -> None
     | `GetLeft ->
-      begin match gena() with
-        | None -> cur := `GetRightOrStop
-        | Some a -> all_a := a :: !all_a; cur := `ProdLeft (a, !all_b)
-      end;
-      next ()
+        begin match gena() with
+          | None -> cur := `GetRightOrStop
+          | Some a -> all_a := a :: !all_a; cur := `ProdLeft (a, !all_b)
+        end;
+        next ()
     | `GetRight | `GetRightOrStop ->  (* TODO: test *)
-      begin match genb() with
-        | None when !cur = `GetRightOrStop -> cur := `Stop
-        | None -> cur := `GetLeft
-        | Some b -> all_b := b::!all_b; cur := `ProdRight (b, !all_a)
-      end;
-      next ()
+        begin match genb() with
+          | None when !cur = `GetRightOrStop -> cur := `Stop
+          | None -> cur := `GetLeft
+          | Some b -> all_b := b::!all_b; cur := `ProdRight (b, !all_a)
+        end;
+        next ()
     | `ProdLeft (_, []) ->
-      cur := `GetRight;
-      next()
+        cur := `GetRight;
+        next()
     | `ProdLeft (x, y::l) ->
-      cur := `ProdLeft (x, l);
-      Some (x, y)
+        cur := `ProdLeft (x, l);
+        Some (x, y)
     | `ProdRight (_, []) ->
-      cur := `GetLeft;
-      next()
+        cur := `GetLeft;
+        next()
     | `ProdRight (y, x::l) ->
-      cur := `ProdRight (y, l);
-      Some (x, y)
+        cur := `ProdRight (y, l);
+        Some (x, y)
   in
   next
 
@@ -1080,22 +1058,22 @@ let group ?(eq=(=)) gen =
   match gen() with
   | None -> fun () -> None
   | Some x ->
-    let cur = ref [x] in
-    let rec next () =
-      (* try to get an element *)
-      let next_x = if !cur = [] then None else gen() in
-      match next_x, !cur with
-      | None, [] -> None
-      | None, l ->
-        cur := [];  (* stop *)
-        Some l
-      | Some x, y::_ when eq x y ->
-        cur := x::!cur;
-        next ()  (* same group *)
-      | Some x, l ->
-        cur := [x];
-        Some l
-    in next
+      let cur = ref [x] in
+      let rec next () =
+        (* try to get an element *)
+        let next_x = if !cur = [] then None else gen() in
+        match next_x, !cur with
+        | None, [] -> None
+        | None, l ->
+            cur := [];  (* stop *)
+            Some l
+        | Some x, y::_ when eq x y ->
+            cur := x::!cur;
+            next ()  (* same group *)
+        | Some x, l ->
+            cur := [x];
+            Some l
+      in next
 
 (*$T
   group (of_list [0;0;0;1;0;2;2;3;4;5;5;5;5;10]) |> to_list = \
@@ -1109,16 +1087,16 @@ let uniq ?(eq=(=)) gen =
     | Stop -> None
     | Init ->
         begin match gen() with
-        | None -> state:= Stop; None
-        | (Some x) as res -> state := Run x; res
+          | None -> state:= Stop; None
+          | (Some x) as res -> state := Run x; res
         end
     | Run x ->
         begin match gen() with
-        | None -> state:= Stop; None
-        | (Some y) as res ->
-            if eq x y
-            then next()   (* ignore duplicate *)
-            else (state := Run y; res)
+          | None -> state:= Stop; None
+          | (Some y) as res ->
+              if eq x y
+              then next()   (* ignore duplicate *)
+              else (state := Run y; res)
         end
   in next
 
@@ -1133,8 +1111,8 @@ let sort ?(cmp=Pervasives.compare) gen =
   iter (Heap.insert h) gen;
   fun () ->
     if Heap.is_empty h
-      then None
-      else Some (Heap.pop h)
+    then None
+    else Some (Heap.pop h)
 (*$T
   sort (of_list [0;0;0;1;0;2;2;3;4;5;5;5;-42;5;10]) |> to_list = \
     [-42;0;0;0;0;1;2;2;3;4;5;5;5;5;10]
@@ -1142,7 +1120,7 @@ let sort ?(cmp=Pervasives.compare) gen =
 
 
 (* NOTE: using a set is not really possible, because once we have built the
-  set there is no simple way to iterate on it *)
+   set there is no simple way to iterate on it *)
 let sort_uniq ?(cmp=Pervasives.compare) gen =
   uniq ~eq:(fun x y -> cmp x y = 0) (sort ~cmp gen)
 
@@ -1164,10 +1142,10 @@ let chunks n e =
     if i = n
     then Some a
     else match e() with
-    | None -> Some (Array.sub a 0 i)  (* last array is not full *)
-    | Some x ->
-        a.(i) <- x;
-        fill a (i+1)
+      | None -> Some (Array.sub a 0 i)  (* last array is not full *)
+      | Some x ->
+          a.(i) <- x;
+          fill a (i+1)
   in
   next
 
@@ -1177,9 +1155,9 @@ let chunks n e =
 *)
 
 (* state of the permutation machine. One machine manages one element [x],
-  and depends on a deeper machine [g] that generates permutations of the
-  list minus this element (down to the empty list).
-  The machine can do two things:
+   and depends on a deeper machine [g] that generates permutations of the
+   list minus this element (down to the empty list).
+   The machine can do two things:
     - insert the element in the current list of [g], at any position
     - obtain the next list of [g]
 *)
@@ -1221,16 +1199,16 @@ let permutations g =
     | Base -> m.st <- Done; Some []
     | Insert ({x;len;n;l;sub} as state) ->
         if n=len
-          then match next sub () with
-            | None -> m.st <- Done; None
-            | Some l ->
-                state.l <- l;
-                state.n <- 0;
-                next m ()
-          else (
-            state.n <- state.n + 1;
-            Some (insert x n l)
-          )
+        then match next sub () with
+          | None -> m.st <- Done; None
+          | Some l ->
+              state.l <- l;
+              state.n <- 0;
+              next m ()
+        else (
+          state.n <- state.n + 1;
+          Some (insert x n l)
+        )
   and insert x n l = match n, l with
     | 0, _ -> x::l
     | _, [] -> assert false
@@ -1255,19 +1233,19 @@ cf http://en.wikipedia.org/wiki/Heap%27s_algorithm.
 
 Continuation-based recursive formula, model for the state manipulations
 below:
-{[
-let rec heap_perm k a n =
-  match n with
-  | 0 -> k a
-  | n ->
-      for i = 0 to n-1 do
-        heap_perm k a (n-1);
-        let j = (if n mod 2 = 1 then 0 else i) in
-        let t = a.(j) in
-        a.(j) <- a.(n-1);
-        a.(n-1) <- t
-      done
-]}
+   {[
+     let rec heap_perm k a n =
+       match n with
+       | 0 -> k a
+       | n ->
+           for i = 0 to n-1 do
+             heap_perm k a (n-1);
+             let j = (if n mod 2 = 1 then 0 else i) in
+             let t = a.(j) in
+             a.(j) <- a.(n-1);
+             a.(n-1) <- t
+           done
+   ]}
 *)
 
 (* The state of the permutation machine, containing
@@ -1291,20 +1269,20 @@ let permutations_heap g =
   let rec next st () = match st.n with
     | 0 ->
         begin match st.is with
-        | [] | _::[] -> assert false
-        | 0::i::is' -> (* "Pop state" before returning next element *)
-            st.is <- (i+1)::is';
-            st.n <- 1;
-            Some (Array.copy a)
-        | _::_::_ -> assert false
+          | [] | _::[] -> assert false
+          | 0::i::is' -> (* "Pop state" before returning next element *)
+              st.is <- (i+1)::is';
+              st.n <- 1;
+              Some (Array.copy a)
+          | _::_::_ -> assert false
         end
     | n ->
         match st.is with
-          | [] -> None
-          | i::is' when i = n -> (* Pop state at end of loop *)
-              st.is <- is';
-              st.n <- n+1;
-              begin match st.is with
+        | [] -> None
+        | i::is' when i = n -> (* Pop state at end of loop *)
+            st.is <- is';
+            st.n <- n+1;
+            begin match st.is with
               | [] -> None (* last loop *)
               | i::is' ->
                   let j = (if st.n mod 2 = 1 then 0 else i) in
@@ -1313,11 +1291,11 @@ let permutations_heap g =
                   st.elts.(n) <- tmp;
                   st.is <- (i+1)::is';
                   next st ()
-              end
-          | _::_ -> (* Recurse down and start new loop *)
-              st.n <- n-1;
-              st.is <- 0 :: st.is;
-              next st ()
+            end
+        | _::_ -> (* Recurse down and start new loop *)
+            st.n <- n-1;
+            st.is <- 0 :: st.is;
+            next st ()
   in
   let n = Array.length a in
   if n = 0 then empty
@@ -1356,8 +1334,8 @@ let combinations n g =
     | Base -> m.st <- Done; Some []
     | Follow m ->
         begin match next m () with
-        | None -> m.st <- Done; None
-        | Some _ as res -> res
+          | None -> m.st <- Done; None
+          | Some _ as res -> res
         end
     | Add (x, m1, m2) ->
         match next m1 () with
@@ -1400,8 +1378,8 @@ let power_set g =
     | Base -> m.st <- Done; Some []
     | Add (x,m') ->
         begin match next m' () with
-        | None -> m.st <- Done; None
-        | Some l as res -> m.st <- AddTo(l,x,m'); res
+          | None -> m.st <- Done; None
+          | Some l as res -> m.st <- AddTo(l,x,m'); res
         end
     | AddTo (l, x, m') ->
         m.st <- Add (x,m');
@@ -1443,25 +1421,25 @@ let to_array gen =
   match l with
   | [] -> [| |]
   | _ ->
-    let a = Array.of_list l in
-    let n = Array.length a in
-    (* reverse array *)
-    for i = 0 to (n-1) / 2 do
-      let tmp = a.(i) in
-      a.(i) <- a.(n-i-1);
-      a.(n-i-1) <- tmp
-    done;
-    a
+      let a = Array.of_list l in
+      let n = Array.length a in
+      (* reverse array *)
+      for i = 0 to (n-1) / 2 do
+        let tmp = a.(i) in
+        a.(i) <- a.(n-i-1);
+        a.(n-i-1) <- tmp
+      done;
+      a
 
 let of_array ?(start=0) ?len a =
   let len = match len with
-  | None -> Array.length a - start
-  | Some n -> assert (n + start < Array.length a); n in
+    | None -> Array.length a - start
+    | Some n -> assert (n + start < Array.length a); n in
   let i = ref start in
   fun () ->
     if !i >= start + len
-      then None
-      else (let x = a.(!i) in incr i; Some x)
+    then None
+    else (let x = a.(!i) in incr i; Some x)
 
 (*$Q
   (Q.array Q.small_int) (fun a -> \
@@ -1470,13 +1448,13 @@ let of_array ?(start=0) ?len a =
 
 let of_string ?(start=0) ?len s =
   let len = match len with
-  | None -> String.length s - start
-  | Some n -> assert (n + start < String.length s); n in
+    | None -> String.length s - start
+    | Some n -> assert (n + start < String.length s); n in
   let i = ref start in
   fun () ->
     if !i >= start + len
-      then None
-      else (let x = s.[!i] in incr i; Some x)
+    then None
+    else (let x = s.[!i] in incr i; Some x)
 
 let to_buffer buf g =
   iter (Buffer.add_char buf) g
@@ -1494,10 +1472,10 @@ let int_range i j =
   fun () ->
     let x = !r in
     if x > j then None
-      else begin
-        incr r;
-        Some x
-      end
+    else begin
+      incr r;
+      Some x
+    end
 
 let lines g =
   let buf = Buffer.create 32 in
@@ -1505,14 +1483,14 @@ let lines g =
   let rec next() =
     if !stop then None
     else match g() with
-    | None -> stop := true;
-        (* only return a non-empty line *)
-        if Buffer.length buf =0 then None else Some (Buffer.contents buf)
-    | Some '\n' ->
-        let s = Buffer.contents buf in
-        Buffer.clear buf;
-        Some s
-    | Some c -> Buffer.add_char buf c; next ()
+      | None -> stop := true;
+          (* only return a non-empty line *)
+          if Buffer.length buf =0 then None else Some (Buffer.contents buf)
+      | Some '\n' ->
+          let s = Buffer.contents buf in
+          Buffer.clear buf;
+          Some s
+      | Some c -> Buffer.add_char buf c; next ()
   in
   next
 
@@ -1543,13 +1521,13 @@ let unlines g =
 
 let pp ?(start="") ?(stop="") ?(sep=",") ?(horizontal=false) pp_elem formatter gen =
   (if horizontal
-    then Format.pp_open_hbox formatter ()
-    else Format.pp_open_hvbox formatter 0);
+   then Format.pp_open_hbox formatter ()
+   else Format.pp_open_hvbox formatter 0);
   Format.pp_print_string formatter start;
   let rec next is_first =
     match gen() with
     | Some x ->
-      if not is_first
+        if not is_first
         then begin
           Format.pp_print_string formatter sep;
           Format.pp_print_space formatter ();
@@ -1828,11 +1806,11 @@ module IO = struct
   let with_in ?mode ?flags filename f =
     with_file_in ?mode ?flags filename
       (fun ic ->
-        let next() =
-          try Some (input_char ic)
-          with End_of_file -> None
-        in
-        f next
+         let next() =
+           try Some (input_char ic)
+           with End_of_file -> None
+         in
+         f next
       )
 
   let with_lines ?mode ?flags filename f =
@@ -1858,11 +1836,11 @@ module IO = struct
   let write_str ?mode ?flags ?(sep="") filename g =
     with_file_out ?mode ?flags filename
       (fun oc ->
-        iteri
-          (fun i s ->
-            if i>0 then output_string oc sep;
-            output oc s 0 (String.length s)
-          ) g
+         iteri
+           (fun i s ->
+              if i>0 then output_string oc sep;
+              output oc s 0 (String.length s)
+           ) g
       )
 
   let write ?mode ?flags filename g =
