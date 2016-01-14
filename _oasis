@@ -29,14 +29,6 @@ Document gen
 
 PreBuildCommand: make qtest-gen
 
-Executable run_tests
-  Path: tests/
-  Install: false
-  CompiledObject: native
-  MainIs: run_tests.ml
-  Build$: flag(tests)
-  BuildDepends: gen,oUnit
-
 Executable run_qtest
   Path:             qtest/
   Install:          false

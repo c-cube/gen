@@ -11,6 +11,31 @@ type 'a gen = 'a t
 
 module type S = Gen_intf.S
 
+(*$inject
+
+  let pint i = string_of_int i
+  let pilist l =
+    let b = Buffer.create 15 in
+    let fmt = Format.formatter_of_buffer b in
+    Format.fprintf fmt "%a@?"
+      (Gen.pp Format.pp_print_int) (Gen.of_list l);
+    Buffer.contents b
+  let pi2list l =
+    let b = Buffer.create 15 in
+    let fmt = Format.formatter_of_buffer b in
+    Format.fprintf fmt "%a@?"
+      (Gen.pp (fun fmt (a,b) -> Format.fprintf fmt "%d,%d" a b))
+      (Gen.of_list l);
+    Buffer.contents b
+  let pstrlist l =
+    let b = Buffer.create 15 in
+    let fmt = Format.formatter_of_buffer b in
+    Format.fprintf fmt "%a@?"
+      (Gen.pp Format.pp_print_string) (Gen.of_list l);
+    Buffer.contents b
+
+*)
+
 (** {2 Transient generators} *)
 
 let empty () = None
@@ -24,9 +49,17 @@ let singleton x =
   fun () ->
     if !first then (first := false; Some x) else None
 
-(*T singleton
+(*$T singleton
   singleton 1 |> to_list = [1]
   singleton "foo" |> to_list = ["foo"]
+*)
+
+(*$R
+  let gen = Gen.singleton 42 in
+  OUnit.assert_equal (Some 42) (Gen.get gen);
+  OUnit.assert_equal None (Gen.get gen);
+  let gen = Gen.singleton 42 in
+  OUnit.assert_equal 1 (Gen.length gen);
 *)
 
 let return = singleton
@@ -125,6 +158,13 @@ let rec iter f gen =
   | None -> ()
   | Some x -> f x; iter f gen
 
+(*$R iter
+  let e = Restart.(1 -- 10) in
+  OUnit.assert_equal ~printer:pint 10 (Restart.length e);
+  OUnit.assert_equal [1;2] Restart.(to_list (1 -- 2));
+  OUnit.assert_equal [1;2;3;4;5] (Restart.to_list (Restart.take 5 e));
+  *)
+
 let iteri f gen =
   let rec iteri i = match gen() with
     | None -> ()
@@ -215,6 +255,12 @@ let map f gen =
     of_list l |> map f |> to_list = List.map f l)
 *)
 
+(*$R
+  let e = 1 -- 10 in
+  let e' = e >>| string_of_int in
+  OUnit.assert_equal ~printer:pstrlist ["9"; "10"] (Gen.to_list (Gen.drop 8 e'));
+*)
+
 let fold_map f s gen =
   map (let state = ref s in fun x -> state := f (!state) x; !state) gen
 
@@ -234,6 +280,11 @@ let append gen1 gen2 =
 (*$Q
   (Q.pair (Q.list Q.small_int)(Q.list Q.small_int)) (fun (l1,l2) -> \
     append (of_list l1) (of_list l2) |> to_list = l1 @ l2)
+*)
+
+(*$R
+  let e = Gen.append (1 -- 5) (6 -- 10) in
+  OUnit.assert_equal [10;9;8;7;6;5;4;3;2;1] (Gen.to_rev_list e);
 *)
 
 let flatten next_gen =
@@ -288,6 +339,12 @@ let flat_map f next_elem =
 (*$T
   flat_map (fun x -> if x mod 1_500_000=0 then singleton x else empty) (1 -- 6_000_000) \
     |> to_list = [1_500_000; 3_000_000; 4_500_000; 6_000_000]
+*)
+
+(*$R
+  let e = 1 -- 3 in
+  let e' = e >>= (fun x -> x -- (x+1)) in
+  OUnit.assert_equal [1;2;2;3;3;4] (Gen.to_list e');
 *)
 
 let mem ?(eq=(=)) x gen =
@@ -465,6 +522,12 @@ let filter_map f gen =
 (*$T
   filter_map (fun x-> if x mod 2 = 0 then Some (string_of_int x) else None) (1--10) \
     |> to_list = List.map string_of_int [2;4;6;8;10]
+*)
+
+(*$R
+  let f x = if x mod 2 = 0 then Some (string_of_int x) else None in
+  let e = Gen.filter_map f (1 -- 10) in
+  OUnit.assert_equal ["2"; "4"; "6"; "8"; "10"] (Gen.to_list e);
 *)
 
 let zip_index gen =
@@ -686,6 +749,11 @@ let zip a b = zip_with (fun x y -> x,y) a b
       |> unzip |> fst |> to_list = l)
 *)
 
+(*$R
+  let e = Gen.zip_with (+) (Gen.repeat 1) (4--7) in
+  OUnit.assert_equal [5;6;7;8] (Gen.to_list e);
+*)
+
 (** {3 Complex combinators} *)
 
 module MergeState = struct
@@ -763,6 +831,13 @@ let merge next_gen =
     |> to_list |> List.sort Pervasives.compare = [1;2;3;4;5;6;7;8;9]
 *)
 
+(*$R
+  let e = of_list [1--3; 4--6; 7--9] in
+  let e' = merge e in
+  OUnit.assert_equal [1;2;3;4;5;6;7;8;9]
+    (to_list e' |> List.sort Pervasives.compare);
+*)
+
 let intersection ?(cmp=Pervasives.compare) gen1 gen2 =
   let x1 = ref (gen1 ()) in
   let x2 = ref (gen2 ()) in
@@ -804,6 +879,13 @@ let sorted_merge ?(cmp=Pervasives.compare) gen1 gen2 =
 (*$T
   sorted_merge (of_list [1;2;2;3;5;10;100]) (of_list [2;4;5;6;11]) \
     |> to_list = [1;2;2;2;3;4;5;5;6;10;11;100]
+*)
+
+(*$R
+  [Gen.of_list [1;3;5]; Gen.of_list [0;1;1;3;4;6;10]; Gen.of_list [2;2;11]]
+    |> Gen.sorted_merge_n ?cmp:None
+    |> Gen.to_list
+    |> OUnit.assert_equal ~printer:pilist [0;1;1;1;2;2;3;3;4;5;6;10;11]
 *)
 
 (** {4 Mutable heap (taken from heap.ml to avoid dependencies)} *)
@@ -908,6 +990,21 @@ let round_robin ?(n=2) gen =
     [[1;4;7;10]; [2;5;8;11]; [3;6;9;12]]
 *)
 
+(*$R
+  let e = Restart.round_robin ~n:2 Restart.(1--10) in
+  match e with
+  | [a;b] ->
+    OUnit.assert_equal [1;3;5;7;9] (Gen.to_list a);
+    OUnit.assert_equal [2;4;6;8;10] (Gen.to_list b)
+  | _ -> OUnit.assert_failure "wrong list lenght"
+*)
+
+(*$R
+  let e = Restart.round_robin ~n:3 Restart.(1 -- 999) in
+  let l = List.map Gen.length e in
+  OUnit.assert_equal [333;333;333] l;
+*)
+
 (* Duplicate the enum into [n] generators (default 2). The generators
    share the same underlying instance of the enum, so the optimal case is
    when they are consumed evenly *)
@@ -974,6 +1071,13 @@ let interleave gen_a gen_b =
     [0;1;0;2;0;3;0;4;0;5]
 *)
 
+(*$R
+  let e1 = Gen.of_list [1;3;5;7;9] in
+  let e2 = Gen.of_list [2;4;6;8;10] in
+  let e = Gen.interleave e1 e2 in
+  OUnit.assert_equal [1;2;3;4;5;6;7;8;9;10] (Gen.to_list e);
+*)
+
 module IntersperseState = struct
   type 'a t =
     | Start
@@ -1005,6 +1109,12 @@ let intersperse x gen =
 
 (*$T
   intersperse 0 (1--5) |> to_list = [1;0;2;0;3;0;4;0;5]
+*)
+
+(*$R
+  let e = 1 -- 5 in
+  let e' = Gen.intersperse 0 e in
+  OUnit.assert_equal [1;0;2;0;3;0;4;0;5] (Gen.to_list e');
 *)
 
 (* Cartesian product *)
@@ -1051,6 +1161,13 @@ let product gena genb =
   product (1--3) (of_list ["a"; "b"]) |> to_list \
     |> List.sort Pervasives.compare = \
       [1, "a"; 1, "b"; 2, "a"; 2, "b"; 3, "a"; 3, "b"]
+*)
+
+(*$R
+  let printer = pi2list in
+  let e = Gen.product (1--3) (4--5) in
+  OUnit.assert_equal ~printer [1,4; 1,5; 2,4; 2,5; 3,4; 3,5]
+    (List.sort Pervasives.compare (Gen.to_list e));
 *)
 
 (* Group equal consecutive elements together. *)
@@ -1778,6 +1895,18 @@ let persistent gen =
     Restart.to_list g' = Restart.to_list g'
   let g = 1--10 in let g' = persistent g in \
     Restart.to_list g' = [1;2;3;4;5;6;7;8;9;10]
+*)
+
+(*$R
+  let i = ref 0 in
+  let gen () =
+    let j = !i in
+    if j > 5 then None else (incr i; Some j)
+  in
+  let e = Gen.persistent gen in
+  OUnit.assert_equal [0;1;2;3;4;5] (Restart.to_list e);
+  OUnit.assert_equal [0;1;2;3;4;5] (Restart.to_list e);
+  OUnit.assert_equal [0;1;2;3;4;5] (Restart.to_list e);
 *)
 
 let persistent_lazy ?caching ?max_chunk_size gen =

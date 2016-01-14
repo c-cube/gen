@@ -45,7 +45,7 @@ push_doc: all doc
 
 qtest-gen:
 	mkdir -p qtest
-	qtest extract gen.ml > qtest/run_qtest.ml || true
+	qtest extract src/gen.ml > qtest/run_qtest.ml || true
 
 test-all:
 	./run_tests.native
