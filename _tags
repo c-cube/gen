@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6dc5bd5f089046cdb899067120422607)
+# DO NOT EDIT (digest: 92fb33b8a2fce5fc7e7a181d61ae4205)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -28,12 +28,9 @@ true: annot, bin_annot
 <qtest/*.ml{,i,y}>: pkg_QTest2Lib
 <qtest/*.ml{,i,y}>: pkg_oUnit
 <qtest/*.ml{,i,y}>: use_gen
-# Executable bench_persistent
-"bench/bench_persistent.native": pkg_benchmark
-"bench/bench_persistent.native": use_gen
-# Executable bench_perms
-"bench/bench_perms.native": pkg_benchmark
-"bench/bench_perms.native": use_gen
+# Executable run_benchs
+"bench/run_benchs.native": pkg_benchmark
+"bench/run_benchs.native": use_gen
 <bench/*.ml{,i,y}>: pkg_benchmark
 <bench/*.ml{,i,y}>: use_gen
 # OASIS_STOP
