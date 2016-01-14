@@ -21,11 +21,11 @@ There are no dependencies. This should work with OCaml>=3.12.
 
     $ make
 
-To build and run tests (requires `oUnit`):
+To build and run tests (requires `oUnit` and `qtest`):
 
-    $ opam install oUnit
-    $ make tests
-    $ ./tests.native
+    $ opam install oUnit qtest
+    $ ./configure --enable-tests
+    $ make test
 
 ## License
 
