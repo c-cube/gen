@@ -59,7 +59,7 @@ update_next_tag:
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" *.ml *.mli
 
 watch:
-	while find src/ benchs/ -print0 | xargs -0 inotifywait -e delete_self -e modify ; do \
+	while find src/ bench/ -print0 | xargs -0 inotifywait -e delete_self -e modify ; do \
 		echo "============ at `date` ==========" ; \
 		make ; \
 	done
