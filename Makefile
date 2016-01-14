@@ -58,16 +58,10 @@ update_next_tag:
 	sed -i "s/NEXT_VERSION/$(VERSION)/g" *.ml *.mli
 	sed -i "s/NEXT_RELEASE/$(VERSION)/g" *.ml *.mli
 
-NAME_VERSION := gen.$(VERSION)
-URL := https://github.com/c-cube/gen/archive/$(VERSION).tar.gz
-
-release:
-	git tag -a $(VERSION) -m "Version $(VERSION)."
-	git push origin $(VERSION)
-	opam publish prepare $(NAME_VERSION) $(URL)
-	cp descr $(NAME_VERSION)
-	echo "submit?"
-	@read
-	opam publish submit $(NAME_VERSION)
+watch:
+	while find src/ benchs/ -print0 | xargs -0 inotifywait -e delete_self -e modify ; do \
+		echo "============ at `date` ==========" ; \
+		make ; \
+	done
 
 .PHONY: update_next_tag release
