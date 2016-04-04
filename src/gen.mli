@@ -90,9 +90,9 @@ val peek : 'a t -> ('a * 'a option) t
     was the last element of [g]
     @since NEXT_RELEASE *)
 
-val peek_n : int -> 'a t -> ('a * 'a list) t
+val peek_n : int -> 'a t -> ('a * 'a array) t
 (** [peek_n n g] iterates on [g], returning along with each element
-    the list of the [n] elements that follow it immediately
+    the array of the (at most) [n] elements that follow it immediately
     @raise Invalid_argument if the int is [< 1]
     @since NEXT_RELEASE *)
 

@@ -1975,7 +1975,20 @@ module FQ = struct
       | [] -> assert (f.back=[]); {f with front=[x]; size=1}
       | _::_ -> {f with back=x::f.back; size=f.size+1}
 
-  let to_list f = List.append f.front (List.rev f.back)
+  let to_array f =
+    (* add [l] from index [i] into [a]. If [rev], add [rev l] to [a] *)
+    let rec add_arr_ ~rev i l a = match l with
+      | [] -> ()
+      | x :: tail when rev -> add_arr_ ~rev:false (i-1) tail a; a.(i) <- x
+      | x :: tail -> a.(i) <- x; add_arr_ ~rev:false (i+1) tail a
+    in
+    match f.front with
+    | [] -> [| |]
+    | x :: tail ->
+        let a = Array.make f.size x in
+        add_arr_ ~rev:false 1 tail a;
+        add_arr_ ~rev:true (Array.length a-1) f.back a;
+        a
 end
 
 let peek_n n g =
@@ -1991,7 +2004,7 @@ let peek_n n g =
         let x, f' = FQ.pop f in
         let f' = fill 1 f' in
         state := if FQ.is_empty f' then `Stop else `At f';
-        Some (x, FQ.to_list f')
+        Some (x, FQ.to_array f')
     | `Stop -> None
 (* add [n] elements to [f] if possible *)
   and fill i f =
@@ -2003,10 +2016,10 @@ let peek_n n g =
   in
   next
 
-(*$= & ~printer:Q.Print.(list (pair int (list int)))
+(*$= & ~printer:Q.Print.(list (pair int (array int)))
   [] (peek_n 1 (of_list []) |> to_list)
-  [1, [2;3]; 2, [3;4]; 3, [4]; 4, []] (peek_n 2 (1 -- 4) |> to_list)
-  [1, [2;3;4]; 2, [3;4;5]; 3, [4;5]; 4, [5]; 5,[]] \
+  [1, [|2;3|]; 2, [|3;4|]; 3, [|4|]; 4, [||]] (peek_n 2 (1 -- 4) |> to_list)
+  [1, [|2;3;4|]; 2, [|3;4;5|]; 3, [|4;5|]; 4, [|5|]; 5,[||]] \
     (peek_n 3 (1 -- 5) |> to_list)
 *)
 
