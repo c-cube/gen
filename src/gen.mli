@@ -90,6 +90,12 @@ val peek : 'a t -> ('a * 'a option) t
     was the last element of [g]
     @since NEXT_RELEASE *)
 
+val peek_n : int -> 'a t -> ('a * 'a list) t
+(** [peek_n n g] iterates on [g], returning along with each element
+    the list of the [n] elements that follow it immediately
+    @raise Invalid_argument if the int is [< 1]
+    @since NEXT_RELEASE *)
+
 val start : 'a Restart.t -> 'a t
 (** Create a new transient generator.
     [start gen] is the same as [gen ()] but is included for readability. *)

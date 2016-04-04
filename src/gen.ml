@@ -1951,6 +1951,65 @@ let peek g =
     l = [] || (of_list l |> peek |> filter_map snd |> to_list = List.tl l))
   *)
 
+(* functional queue *)
+module FQ = struct
+  type 'a t = {
+    front: 'a list;
+    back: 'a list;
+    size: int;
+  } (* invariant: front=[] ==> back=[] *)
+
+  let empty = {front=[]; back=[]; size=0}
+  let size f = f.size
+  let is_empty f = f.front=[]
+
+  let pop f = match f.front with
+    | [] -> assert false
+    | [x] -> x, {front=List.rev f.back; back=[]; size=f.size-1}
+    | x :: tl -> x, {f with front=tl; size=f.size-1}
+
+  let push ~max_size x f =
+    assert (max_size>0);
+    let f = if f.size=max_size then snd (pop f) else f in
+    match f.front with
+      | [] -> assert (f.back=[]); {f with front=[x]; size=1}
+      | _::_ -> {f with back=x::f.back; size=f.size+1}
+
+  let to_list f = List.append f.front (List.rev f.back)
+end
+
+let peek_n n g =
+  if n<1 then invalid_arg "peek_n";
+  let state = ref `Start in
+  let rec next () = match !state with
+    | `Start ->
+        let f = fill n FQ.empty in
+        state := if FQ.is_empty f then `Stop else `At f;
+        next ()
+    | `At f ->
+        assert (not (FQ.is_empty f));
+        let x, f' = FQ.pop f in
+        let f' = fill 1 f' in
+        state := if FQ.is_empty f' then `Stop else `At f';
+        Some (x, FQ.to_list f')
+    | `Stop -> None
+(* add [n] elements to [f] if possible *)
+  and fill i f =
+    assert (i + FQ.size f <= n);
+    if i=0 then f
+    else match g() with
+      | None -> f
+      | Some x -> fill (i-1) (FQ.push ~max_size:n x f)
+  in
+  next
+
+(*$= & ~printer:Q.Print.(list (pair int (list int)))
+  [] (peek_n 1 (of_list []) |> to_list)
+  [1, [2;3]; 2, [3;4]; 3, [4]; 4, []] (peek_n 2 (1 -- 4) |> to_list)
+  [1, [2;3;4]; 2, [3;4;5]; 3, [4;5]; 4, [5]; 5,[]] \
+    (peek_n 3 (1 -- 5) |> to_list)
+*)
+
 (** {2 Basic IO} *)
 
 module IO = struct
