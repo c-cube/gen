@@ -48,7 +48,6 @@ qtest-gen:
 	qtest extract src/gen.ml > qtest/run_qtest.ml || true
 
 test-all:
-	./run_tests.native
 	./run_qtest.native
 
 VERSION=$(shell awk '/^Version:/ {print $$2}' _oasis)

@@ -40,7 +40,7 @@ Executable run_qtest
 
 Test all
   Command: make test-all
-  TestTools: run_tests, run_qtest
+  TestTools: run_qtest
   Run$: flag(tests)
 
 Executable run_benchs
