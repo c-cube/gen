@@ -3,6 +3,8 @@
 
 (** {1 Monadic Interface}
 
+    {b status: experimental}
+
     @since NEXT_RELEASE *)
 
 module type MONAD = GenM_intf.MONAD
