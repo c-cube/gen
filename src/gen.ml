@@ -1271,6 +1271,11 @@ let chunks n e =
     List.map to_list [(0--24); (25--49);(50--74);(75--99);(100--100)]
 *)
 
+(*$Q
+  Q.(list int) (fun l -> \
+    of_list l |> chunks 25 |> flat_map of_array |> to_list = l)
+*)
+
 (* state of the permutation machine. One machine manages one element [x],
    and depends on a deeper machine [g] that generates permutations of the
    list minus this element (down to the empty list).
