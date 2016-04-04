@@ -84,6 +84,12 @@ val persistent_lazy : ?caching:bool -> ?max_chunk_size:int ->
     Optional parameters: see {!GenMList.of_gen_lazy}.
     @since 0.2.2 *)
 
+val peek : 'a t -> ('a * 'a option) t
+(** [peek g] transforms the generator [g] into a generator
+    of [x, Some next] if [x] was followed by [next] in [g], or [x, None] if [x]
+    was the last element of [g]
+    @since NEXT_RELEASE *)
+
 val start : 'a Restart.t -> 'a t
 (** Create a new transient generator.
     [start gen] is the same as [gen ()] but is included for readability. *)

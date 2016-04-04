@@ -1919,6 +1919,28 @@ let persistent_lazy ?caching ?max_chunk_size gen =
     (g' () |> take 200 |> to_list = (1--200 |> to_list))
 *)
 
+let peek g =
+  let state = ref `Start in
+  let rec next() =  match !state with
+    | `Stop -> None
+    | `At x ->
+        begin match g() with
+          | None -> state := `Stop; Some (x,None)
+          | Some y as res -> state := `At y; Some (x, res)
+        end
+    | `Start ->
+        begin match g() with
+          | None -> state := `Stop; None
+          | Some x -> state := `At x; next()
+        end
+  in
+  next
+
+(*$= & ~printer:Q.Print.(list (pair int (option int)))
+  [] (peek (of_list []) |> to_list)
+  [1, Some 2; 2, Some 3; 3, Some 4; 4, None] (peek (1 -- 4) |> to_list)
+*)
+
 (** {2 Basic IO} *)
 
 module IO = struct
