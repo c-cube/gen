@@ -1946,6 +1946,11 @@ let peek g =
   [1, Some 2; 2, Some 3; 3, Some 4; 4, None] (peek (1 -- 4) |> to_list)
 *)
 
+(*$Q
+  Q.(list int) (fun l -> \
+    l = [] || (of_list l |> peek |> filter_map snd |> to_list = List.tl l))
+  *)
+
 (** {2 Basic IO} *)
 
 module IO = struct
