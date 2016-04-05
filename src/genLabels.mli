@@ -69,7 +69,19 @@ val persistent_lazy : ?caching:bool -> ?max_chunk_size:int ->
     This allows to make a restartable generator out of an ephemeral one,
     without paying a big cost upfront (nor even consuming it fully).
     Optional parameters: see {!GenMList.of_gen_lazy}.
-*)
+    @since 0.2.2 *)
+
+val peek : 'a t -> ('a * 'a option) t
+(** [peek g] transforms the generator [g] into a generator
+    of [x, Some next] if [x] was followed by [next] in [g], or [x, None] if [x]
+    was the last element of [g]
+    @since NEXT_RELEASE *)
+
+val peek_n : n:int -> 'a t -> ('a * 'a array) t
+(** [peek_n ~n g] iterates on [g], returning along with each element
+    the array of the (at most) [n] elements that follow it immediately
+    @raise Invalid_argument if the int is [< 1]
+    @since NEXT_RELEASE *)
 
 val start : 'a Restart.t -> 'a t
 (** Create a new transient generator.
@@ -77,27 +89,40 @@ val start : 'a Restart.t -> 'a t
 
 (** {2 Basic IO}
 
-    Very basic interface to manipulate files as sequence of chunks/lines.
-*)
+    Very basic interface to manipulate files as sequence of chunks/lines. *)
 
 module IO : sig
   val with_in : ?mode:int -> ?flags:open_flag list ->
-    string ->
+    file:string ->
     (char t -> 'a) -> 'a
-  (** [read filename f] opens [filename] and calls [f g],
+  (** [with_in ~file f] opens [file] and calls [f g],
       where [g] is a generator of characters from the file.
       The generator is only valid within
       the scope in which [f] is called. *)
 
+  val with_lines : ?mode:int -> ?flags:open_flag list ->
+    file:string -> (string t -> 'a) -> 'a
+  (** [with_lines ~file f] opens file [file] and calls [f g],
+      where [g] is a generator that iterates on the lines from the file.
+      Do not use the generator outside of the scope of [f]
+      @since NEXT_RELEASE *)
+
   val write_str : ?mode:int -> ?flags:open_flag list ->  ?sep:string ->
-    string -> string t -> unit
-  (** [write_to filename g] writes all strings from [g] into the given
-      file. It takes care of opening and closing the file.
+    file:string -> string t -> unit
+  (** [write_to ~file g] writes all strings from [g] into the given
+      file. It takes care of opening and closing the file. Does not
+      add [sep] after the last string.
       @param mode default [0o644]
       @param flags used by [open_out_gen]. Default: [[Open_creat;Open_wronly]].
       @param sep separator between each string (e.g. newline) *)
 
   val write : ?mode:int -> ?flags:open_flag list ->
-    string -> char t -> unit
+    file:string -> char t -> unit
   (** Same as {!write_str} but with individual characters *)
+
+  val write_lines : ?mode:int -> ?flags:open_flag list ->
+    file:string -> string t -> unit
+  (** [write_lines ~file g] is similar to [write_str file g ~sep:"\n"] but
+      also adds ['\n'] at the end of the file
+      @since NEXT_RELEASE *)
 end
