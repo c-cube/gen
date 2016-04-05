@@ -45,7 +45,12 @@ val repeatedly : (unit -> 'a) -> 'a t
 include S with type 'a t := 'a gen
 (** Operations on {b transient} generators *)
 
-(** {2 Restartable generators} *)
+(** {2 Restartable generators}
+
+    A {i restartable generator} is a function that produces copies of the
+    same generator, on demand. It has the type [unit -> 'a gen] and it is
+    assumed that every generated returned by the function behaves the same
+    (that is, that it traverses the same sequence of elements). *)
 
 module Restart : sig
   type 'a t = unit -> 'a gen

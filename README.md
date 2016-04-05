@@ -1,17 +1,29 @@
 Gen
 ===
 
-Iterators for OCaml, both restartable and consumable. Performances should
-be good, yet the code is simple and straightforward.
+Iterators for OCaml, both restartable and consumable. The implementation
+keeps a good balance between simplicity and performance.
 
-The documentation can be found [here](http://cedeela.fr/~simon/software/gen)
+The library is extensively tested using `qtest`. If you find a bug,
+please report!
+
+The documentation can be found [here](http://cedeela.fr/~simon/software/gen);
+the main module is [Gen](http://cedeela.fr/~simon/software/gen/Gen.html)
+and should suffice for 95% of use cases.
+
+## Install
+
+    $ opam install gen
+
+or, manually, by building the library and running `make install`. Opam is
+recommended, for it keeps the library up-to-date.
 
 ## Use
 
-You can either build and install the library (see `Build`), or just copy
+You can either build and install the library (see "Build"), or just copy
 files to your own project. The last solution has the benefits that you
 don't have additional dependencies nor build complications (and it may enable
-more inlining). I therefore recommand it for its simplicity.
+more inlining).
 
 If you have comments, requests, or bugfixes, please share them! :-)
 
