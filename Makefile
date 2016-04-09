@@ -41,7 +41,7 @@ configure:
 # OASIS_STOP
 
 push_doc: all doc
-	scp -r gen.docdir/* cedeela.fr:~/simon/root/software/gen/
+	rsync -tavu gen.docdir/* cedeela.fr:~/simon/root/software/gen/
 
 qtest-gen:
 	mkdir -p qtest
