@@ -20,7 +20,7 @@ module type S = sig
 
   val return : 'a -> 'a t
   (** Alias to {!singleton}
-      @since NEXT_RELEASE *)
+      @since 0.3 *)
 
   val repeat : 'a -> 'a t
   (** Repeat same element endlessly *)
@@ -314,11 +314,11 @@ module type S = sig
 
   val lines : char t -> string t
   (** Group together chars belonging to the same line
-      @since NEXT_RELEASE *)
+      @since 0.3 *)
 
   val unlines : string t -> char t
   (** Explode lines into their chars, adding a ['\n'] after each one
-      @since NEXT_RELEASE *)
+      @since 0.3 *)
 
   module Infix : sig
     val (--) : int -> int -> int t

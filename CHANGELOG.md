@@ -1,5 +1,29 @@
 # Changelog
 
+# 0.4
+
+- update `GenLabels` with missing functions
+- add `Gen.peek_n`
+- add `Gen.peek`
+- add first draft of `GenM`, an overlay for iterating over monadic values.
+  this module is experimental as of now.
+- cleanup:
+  * more tests
+  * move all tests to gen.ml using qtest
+  * merge benchmarks into a single file
+  * add ocp-indent file, update header, reindent files
+  * move code to src/
+
+# 0.3
+
+- add `Gen.return`
+- fix overflow in `Gen.flat_map`; add regression test
+- opam: depend on ocamlbuild
+- add functions `Gen.{lines,unlines}`
+- add `Gen.Restart.of_gen` as a convenient alias to `persistent_lazy`
+- add `Gen.IO.{with_lines, write_lines}`
+- update benchmarks to use Benchmark.Tree
+
 # 0.2.4
 
 - `GenLabels` module

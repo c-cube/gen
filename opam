@@ -1,6 +1,8 @@
 opam-version: "1.2"
 maintainer: "simon.cruanes.2007@m4x.org"
 author: "Simon Cruanes"
+name: "gen"
+version: "0.4"
 build: [
     ["./configure" "--disable-docs" "--disable-tests" "--disable-bench"]
     [make "all"]

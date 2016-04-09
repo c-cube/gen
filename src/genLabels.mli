@@ -75,13 +75,13 @@ val peek : 'a t -> ('a * 'a option) t
 (** [peek g] transforms the generator [g] into a generator
     of [x, Some next] if [x] was followed by [next] in [g], or [x, None] if [x]
     was the last element of [g]
-    @since NEXT_RELEASE *)
+    @since 0.4 *)
 
 val peek_n : n:int -> 'a t -> ('a * 'a array) t
 (** [peek_n ~n g] iterates on [g], returning along with each element
     the array of the (at most) [n] elements that follow it immediately
     @raise Invalid_argument if the int is [< 1]
-    @since NEXT_RELEASE *)
+    @since 0.4 *)
 
 val start : 'a Restart.t -> 'a t
 (** Create a new transient generator.
@@ -105,7 +105,7 @@ module IO : sig
   (** [with_lines ~file f] opens file [file] and calls [f g],
       where [g] is a generator that iterates on the lines from the file.
       Do not use the generator outside of the scope of [f]
-      @since NEXT_RELEASE *)
+      @since 0.4 *)
 
   val write_str : ?mode:int -> ?flags:open_flag list ->  ?sep:string ->
     file:string -> string t -> unit
@@ -124,5 +124,5 @@ module IO : sig
     file:string -> string t -> unit
   (** [write_lines ~file g] is similar to [write_str file g ~sep:"\n"] but
       also adds ['\n'] at the end of the file
-      @since NEXT_RELEASE *)
+      @since 0.4 *)
 end

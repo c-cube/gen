@@ -5,7 +5,7 @@
 
     {b status: experimental}
 
-    @since NEXT_RELEASE *)
+    @since 0.4 *)
 
 module type MONAD = GenM_intf.MONAD
 
