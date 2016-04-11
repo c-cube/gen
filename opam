@@ -14,7 +14,7 @@ remove: [
     ["ocamlfind" "remove" "gen"]
 ]
 depends: [
-  "ocamlfind"
+  "ocamlfind" {build}
   "ocamlbuild" {build}
 ]
 tags: [ "gen" "iterator" "iter" "fold" ]
