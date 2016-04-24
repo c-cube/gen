@@ -312,6 +312,7 @@ module type S = sig
   (** [int_range ~by a b] generates integers between [a] and [b], included,
       with steps of length [by] (1 if omitted). [a] is assumed to be smaller
       than [b].
+      @raise Invalid_argument if [by=0]
       @param by step between two numbers; must not be zero,
         but it can be negative for decreasing ranges. @since NEXT_RELEASE. *)
 
