@@ -1589,13 +1589,15 @@ let to_string s =
 let rand_int i =
   repeatedly (fun () -> Random.int i)
 
-let int_range i j =
+let int_range ?(by=1) i j =
+  if by = 0 then raise (Invalid_argument "Gen.int_range");
+  let (>) = if by > 0 then (>) else (<) in
   let r = ref i in
   fun () ->
     let x = !r in
     if x > j then None
     else begin
-      incr r;
+      r := !r + by;
       Some x
     end
 
@@ -1663,7 +1665,7 @@ let pp ?(start="") ?(stop="") ?(sep=",") ?(horizontal=false) pp_elem formatter g
   Format.pp_close_box formatter ()
 
 module Infix = struct
-  let (--) = int_range
+  let (--) = int_range ~by:1
 
   let (>>=) x f = flat_map f x
   let (>>|) x f = map f x
@@ -1857,13 +1859,13 @@ module Restart = struct
 
   let rand_int i () = rand_int i
 
-  let int_range i j () = int_range i j
+  let int_range ?by i j () = int_range ?by i j
 
   let lines g () = lines (g())
   let unlines g () = unlines (g())
 
   module Infix = struct
-    let (--) = int_range
+    let (--) = int_range ~by:1
 
     let (>>=) x f = flat_map f x
     let (>>|) x f = map f x
