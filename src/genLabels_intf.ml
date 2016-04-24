@@ -308,10 +308,10 @@ module type S = sig
   val rand_int : int -> int t
   (** Random ints in the given range. *)
 
-  val int_range : ?by:int -> int -> int -> int t
-  (** [int_range ~by a b] generates integers between [a] and [b], included,
-      with steps of length [by] (1 if omitted). [a] is assumed to be smaller
-      than [b]. [by] must not be null, but it can be negative for decreasing
+  val int_range : ?step:int -> int -> int -> int t
+  (** [int_range ~step a b] generates integers between [a] and [b], included,
+      with steps of length [step] (1 if omitted). [a] is assumed to be smaller
+      than [b]. [step] must not be null, but it can be negative for decreasing
       integers. *)
 
   val lines : char t -> string t

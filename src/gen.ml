@@ -1589,22 +1589,22 @@ let to_string s =
 let rand_int i =
   repeatedly (fun () -> Random.int i)
 
-let int_range ?(by=1) i j =
-  if by = 0 then raise (Invalid_argument "Gen.int_range");
-  let (>) = if by > 0 then (>) else (<) in
+let int_range ?(step=1) i j =
+  if step = 0 then raise (Invalid_argument "Gen.int_range");
+  let (>) = if step > 0 then (>) else (<) in
   let r = ref i in
   fun () ->
     let x = !r in
     if x > j then None
     else begin
-      r := !r + by;
+      r := !r + step;
       Some x
     end
 
 (*$= & ~printer:Q.Print.(list int)
   [1;2;3;4] (int_range 1 4 |> to_list)
-  [4;3;2;1] (int_range ~by:~-1 4 1 |> to_list)
-  [6;4;2] (int_range 6 1 ~by:~-2 |> to_list)
+  [4;3;2;1] (int_range ~step:~-1 4 1 |> to_list)
+  [6;4;2] (int_range 6 1 ~step:~-2 |> to_list)
   [] (int_range 4 1 |> to_list)
 *)
 
@@ -1672,7 +1672,7 @@ let pp ?(start="") ?(stop="") ?(sep=",") ?(horizontal=false) pp_elem formatter g
   Format.pp_close_box formatter ()
 
 module Infix = struct
-  let (--) = int_range ~by:1
+  let (--) = int_range ~step:1
 
   let (>>=) x f = flat_map f x
   let (>>|) x f = map f x
@@ -1866,13 +1866,13 @@ module Restart = struct
 
   let rand_int i () = rand_int i
 
-  let int_range ?by i j () = int_range ?by i j
+  let int_range ?step i j () = int_range ?step i j
 
   let lines g () = lines (g())
   let unlines g () = unlines (g())
 
   module Infix = struct
-    let (--) = int_range ~by:1
+    let (--) = int_range ~step:1
 
     let (>>=) x f = flat_map f x
     let (>>|) x f = map f x

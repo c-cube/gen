@@ -308,13 +308,13 @@ module type S = sig
   val rand_int : int -> int t
   (** Random ints in the given range. *)
 
-  val int_range : ?by:int -> int -> int -> int t
-  (** [int_range ~by a b] generates integers between [a] and [b], included,
-      with steps of length [by] (1 if omitted). [a] is assumed to be smaller
-      than [b].
-      @raise Invalid_argument if [by=0]
-      @param by step between two numbers; must not be zero,
-        but it can be negative for decreasing ranges. @since NEXT_RELEASE. *)
+  val int_range : ?step:int -> int -> int -> int t
+  (** [int_range ~step a b] generates integers between [a] and [b], included,
+      with steps of length [step] (1 if omitted). [a] is assumed to be smaller
+      than [b], otherwise the result will be empty.
+      @raise Invalid_argument if [step=0]
+      @param step step between two numbers; must not be zero,
+        but it can be negative for decreasing ranges (@since NEXT_RELEASE). *)
 
   val lines : char t -> string t
   (** Group together chars belonging to the same line
