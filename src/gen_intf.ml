@@ -308,9 +308,11 @@ module type S = sig
   val rand_int : int -> int t
   (** Random ints in the given range. *)
 
-  val int_range : int -> int -> int t
-  (** [int_range a b] generates integers between [a] and [b], included. [a]
-      is assumed to be smaller than [b]. *)
+  val int_range : ?by:int -> int -> int -> int t
+  (** [int_range ~by a b] generates integers between [a] and [b], included,
+      with steps of length [by] (1 if omitted). [a] is assumed to be smaller
+      than [b]. [by] must not be null, but it can be negative for decreasing
+      integers. *)
 
   val lines : char t -> string t
   (** Group together chars belonging to the same line
@@ -322,7 +324,7 @@ module type S = sig
 
   module Infix : sig
     val (--) : int -> int -> int t
-    (** Synonym for {! int_range} *)
+    (** Synonym for {! int_range ~by:1} *)
 
     val (>>=) : 'a t -> ('a -> 'b gen) -> 'b t
     (** Monadic bind operator *)
@@ -337,7 +339,7 @@ module type S = sig
   end
 
   val (--) : int -> int -> int t
-  (** Synonym for {! int_range} *)
+  (** Synonym for {! int_range ~by:1} *)
 
   val (>>=) : 'a t -> ('a -> 'b gen) -> 'b t
   (** Monadic bind operator *)
