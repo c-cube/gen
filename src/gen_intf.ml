@@ -311,8 +311,9 @@ module type S = sig
   val int_range : ?by:int -> int -> int -> int t
   (** [int_range ~by a b] generates integers between [a] and [b], included,
       with steps of length [by] (1 if omitted). [a] is assumed to be smaller
-      than [b]. [by] must not be null, but it can be negative for decreasing
-      integers. *)
+      than [b].
+      @param by step between two numbers; must not be zero,
+        but it can be negative for decreasing ranges. @since NEXT_RELEASE. *)
 
   val lines : char t -> string t
   (** Group together chars belonging to the same line
