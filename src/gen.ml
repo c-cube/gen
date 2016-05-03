@@ -261,6 +261,20 @@ let map f gen =
   OUnit.assert_equal ~printer:pstrlist ["9"; "10"] (Gen.to_list (Gen.drop 8 e'));
 *)
 
+let mapi f =
+  let cnt = ref 0 in
+  let cnt_map x =
+    let i = !cnt in cnt := i + 1; f i x in
+  map cnt_map
+
+(*$Q mapi
+  (Q.list Q.small_int) (fun l -> \
+    let len = List.length l in \
+    let f i x = i+x+1 in \
+    of_list l |> mapi f |> to_list |> fun l' -> List.fold_left (+) 0 l'= \
+      len*(len+1)/2 + List.fold_left (+) 0 l)
+*)
+
 let fold_map f s gen =
   map (let state = ref s in fun x -> state := f (!state) x; !state) gen
 
@@ -1730,6 +1744,8 @@ module Restart = struct
   let length e = length (e ())
 
   let map f e () = map f (e ())
+
+  let mapi f e () = mapi f (e ())
 
   let fold_map f s e () = fold_map f s (e ())
 
