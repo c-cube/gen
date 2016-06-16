@@ -31,4 +31,5 @@ true: annot, bin_annot
 # OASIS_STOP
 "qtest": include
 <**/*.ml>: warn_A, warn(-4), warn(-44)
+<**/*.cmx>: optimize(3)
 <**/genLabels.cm*>: nolabels
