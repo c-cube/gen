@@ -16,6 +16,7 @@ remove: [
 depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
+  "base-bytes"
 ]
 tags: [ "gen" "iterator" "iter" "fold" ]
 homepage: "https://github.com/c-cube/gen/"
