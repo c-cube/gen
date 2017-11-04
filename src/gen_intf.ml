@@ -82,7 +82,7 @@ module type S = sig
   val mapi : (int -> 'a -> 'b) -> 'a t -> 'b t
   (** Lazy map with indexing starting from 0. No iteration is performed now,
       the function will be called when the result is traversed.
-      @since NEXT_RELEASE *)
+      @since 0.5 *)
 
   val fold_map : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b t
   (** Lazy fold and map. No iteration is performed now, the function will be
@@ -319,7 +319,7 @@ module type S = sig
       than [b], otherwise the result will be empty.
       @raise Invalid_argument if [step=0]
       @param step step between two numbers; must not be zero,
-        but it can be negative for decreasing ranges (@since NEXT_RELEASE). *)
+        but it can be negative for decreasing ranges (@since 0.5). *)
 
   val lines : char t -> string t
   (** Group together chars belonging to the same line

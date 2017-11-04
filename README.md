@@ -1,5 +1,4 @@
-Gen
-===
+# Gen
 
 Iterators for OCaml, both restartable and consumable. The implementation
 keeps a good balance between simplicity and performance.

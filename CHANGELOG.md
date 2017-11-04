@@ -1,5 +1,13 @@
 # Changelog
 
+# 0.5
+
+- fix small problem with safe-string
+- move to safe-string, for compatibility with 4.06.0
+- add optimize() flag to `_tags`
+- rename parameter of `int_range` from `by` to `step`
+- add `?(by=1)` to `int_range`
+
 # 0.4
 
 - update `GenLabels` with missing functions

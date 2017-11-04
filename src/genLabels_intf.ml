@@ -82,7 +82,7 @@ module type S = sig
   val mapi : f:(int -> 'a -> 'b) -> 'a t -> 'b t
   (** Lazy map with indexing starting from 0. No iteration is performed now,
       the function will be called when the result is traversed.
-      @since NEXT_RELEASE *)
+      @since 0.5 *)
 
   val fold_map : f:('b -> 'a -> 'b) -> init:'b -> 'a t -> 'b t
   (** Lazy fold and map. No iteration is performed now, the function will be
