@@ -1,9 +1,0 @@
-# OASIS_START
-# DO NOT EDIT (digest: 8baad29d22c1f5fe92efa8f831e8907b)
-src/Gen
-src/GenLabels
-src/GenClone
-src/GenMList
-src/Gen_intf
-src/GenLabels_intf
-# OASIS_STOP

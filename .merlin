@@ -1,6 +1,0 @@
-S src
-B _build/src
-S tests
-B _build/tests
-PKG oUnit
-FLG -w +a-4-44

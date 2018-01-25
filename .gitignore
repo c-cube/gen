@@ -9,3 +9,5 @@ TAGS
 *.log
 setup.data
 qtest
+.merlin
+*.install

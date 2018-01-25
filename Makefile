@@ -1,56 +1,22 @@
-# OASIS_START
-# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-SETUP = ocaml setup.ml
+all: build test
 
-build: setup.data
-	$(SETUP) -build $(BUILDFLAGS)
+build:
+	jbuilder build @install
 
-doc: setup.data build
-	$(SETUP) -doc $(DOCFLAGS)
-
-test: setup.data build
-	$(SETUP) -test $(TESTFLAGS)
-
-all:
-	$(SETUP) -all $(ALLFLAGS)
-
-install: setup.data
-	$(SETUP) -install $(INSTALLFLAGS)
-
-uninstall: setup.data
-	$(SETUP) -uninstall $(UNINSTALLFLAGS)
-
-reinstall: setup.data
-	$(SETUP) -reinstall $(REINSTALLFLAGS)
+test:
+	jbuilder runtest --no-buffer
 
 clean:
-	$(SETUP) -clean $(CLEANFLAGS)
+	jbuilder clean
 
-distclean:
-	$(SETUP) -distclean $(DISTCLEANFLAGS)
-
-setup.data:
-	$(SETUP) -configure $(CONFIGUREFLAGS)
-
-configure:
-	$(SETUP) -configure $(CONFIGUREFLAGS)
-
-.PHONY: build doc test all install uninstall reinstall clean distclean configure
-
-# OASIS_STOP
+doc:
+	jbuilder build @doc
 
 push_doc: all doc
 	rsync -tavu gen.docdir/* cedeela.fr:~/simon/root/software/gen/
 
-qtest-gen:
-	mkdir -p qtest
-	qtest extract src/gen.ml > qtest/run_qtest.ml || true
-
-test-all:
-	./run_qtest.native
-
-VERSION=$(shell awk '/^Version:/ {print $$2}' _oasis)
+VERSION=$(shell awk '/^version:/ {print $$2}' gen.opam)
 
 update_next_tag:
 	@echo "update version to $(VERSION)..."
