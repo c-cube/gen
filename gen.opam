@@ -2,7 +2,7 @@ opam-version: "1.2"
 maintainer: "simon.cruanes.2007@m4x.org"
 author: "Simon Cruanes"
 name: "gen"
-version: "0.5"
+version: "0.5.1"
 build: [
     ["jbuilder" "build" "@install"]
 ]
