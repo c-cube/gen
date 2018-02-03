@@ -6,6 +6,9 @@ version: "0.5"
 build: [
     ["jbuilder" "build" "@install"]
 ]
+build-test: [
+  ["jbuilder" "runtest"]
+]
 build-doc: [
   ["jbuilder" "build" "@doc"]
 ]
