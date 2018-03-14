@@ -334,13 +334,8 @@ let flat_map f next_elem =
     | Stop -> None
   and get_next_gen() = match next_elem() with
     | None -> state:=Stop; None
-    | Some x ->
-        begin try state := Run (f x)
-          with e ->
-            state := Stop;
-            raise e
-        end;
-        next()
+    | Some x -> state := Run (f x); next()
+    | exception e -> state := Stop; raise e
   in
   next
 
