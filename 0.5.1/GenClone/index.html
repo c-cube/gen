@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>GenClone (gen.GenClone)</title><link rel="stylesheet" href="../../odoc.css"/><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="generator" content="doc-ock-html v1.0.0-1-g1fc9bf0"/></head><body><nav id="top"><a href="../index.html">Up</a> &mdash; <span class="package">package <a href="../index.html">gen</a></span></nav><header><h1><span class="keyword">Module</span> <span class="module-path">GenClone</span></h1></header><h2>Clonable Generators</h2><p>Utils to save the internal state of a generator, and restart from this
+state. This will and should not work on <i>any</i> iterator, but for
+some of them (e.g. reading from a file, see <a href="IO/index.html">IO</a>) it makes a lot of sense.</p><ul class="at-tag"><li><span class="at-tag since">Since</span>: 0.2.3</li></ul><div class="spec type" id="type-gen"><a href="#type-gen" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a gen</code><code><span class="keyword"> = </span>unit <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> option</code><code></code></div><div class="doc"></div></div><div class="spec type" id="type-t"><a href="#type-t" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a t</code><code><span class="keyword"> = </span>&lt; gen : <span class="type-var">'a</span> <a href="index.html#type-gen">gen</a>; clone : <span class="type-var">'a</span> <a href="index.html#type-t">t</a>; &gt;</code><code></code></div><div class="doc"><p>A generator that can be cloned as many times as required.</p></div></div><div class="spec type" id="type-clonable"><a href="#type-clonable" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a clonable</code><code><span class="keyword"> = </span><span class="type-var">'a</span> <a href="index.html#type-t">t</a></code><code></code></div><div class="doc"><p>Alias to 'a t</p></div></div><h3>Prepend method</h3><div class="spec type" id="type-prependable"><a href="#type-prependable" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a prependable</code><code><span class="keyword"> = </span>&lt; gen : <span class="type-var">'a</span> <a href="index.html#type-gen">gen</a>; clone : <span class="type-var">'a</span> <a href="index.html#type-prependable">prependable</a>; prepend : <span class="type-var">'a</span> <span class="keyword">&#8209;&gt;</span> unit; &gt;</code><code></code></div><div class="doc"></div></div><div class="spec val" id="val-to_prependable"><a href="#val-to_prependable" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>to_prependable : <span class="type-var">'a</span> <a href="index.html#type-t">t</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-prependable">prependable</a></code></div><div class="doc"></div></div><h3>Misc</h3><div class="spec val" id="val-map"><a href="#val-map" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>map : (<span class="type-var">'a</span> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'b</span>) <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-t">t</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'b</span> <a href="index.html#type-t">t</a></code></div><div class="doc"></div></div><h3>Low-level Persistency</h3><p>Example:
+</p><pre><code class="code">      let g = 1 -- 1000 ;;
+      val g : int t = &lt;fun&gt;
+
+      let c = g |&gt; MList.of_gen_lazy |&gt; MList.to_clonable;;
+      val c : int clonable = &lt;obj&gt;
+
+                c#next |&gt; take 500 |&gt; to_list;;
+      - : int list = [1; 2; 3; .....; 500]
+
+      let c' = c#clone ;;
+      val c' : int clonable = &lt;obj&gt;
+
+                 c |&gt; to_list;;
+      - : int list = [501; 502; ....; 1000]
+
+        c'#gen |&gt; to_list;;   (* c consumed, but not c' *)
+      - : int list = [501; 502; ....; 1000]
+
+        c#gen |&gt; to_list;;
+      - : int list = []</code></pre><h3>IO</h3><div class="spec module" id="module-IO"><a href="#module-IO" class="anchor"></a><div class="def module"><code><span class="keyword">module </span><a href="IO/index.html">IO</a> : <span class="keyword">sig</span> ... <span class="keyword">end</span></code></div><div class="doc"></div></div></body></html>

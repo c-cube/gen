@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>IO (gen.GenClone.IO)</title><link rel="stylesheet" href="../../../odoc.css"/><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="generator" content="doc-ock-html v1.0.0-1-g1fc9bf0"/></head><body><nav id="top"><a href="../index.html">Up</a> &mdash; <span class="package">package <a href="../../index.html">gen</a></span></nav><header><h1><span class="keyword">Module</span> <span class="module-path">GenClone.IO</span></h1></header><div class="spec val" id="val-with_in"><a href="#val-with_in" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>with_in : ?&#8288;mode:int <span class="keyword">&#8209;&gt;</span> ?&#8288;flags:Pervasives.open_flag list <span class="keyword">&#8209;&gt;</span> string <span class="keyword">&#8209;&gt;</span> (char <a href="../index.html#type-t">t</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span>) <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span></code></div><div class="doc"><p><code class="code">read filename f</code> opens <code class="code">filename</code> and calls <code class="code">f g</code>,
+where <code class="code">g</code> is a clonable generator of characters from the file.
+It can be cloned by calling <code class="code">g#save</code> (which saves the position
+in the file), and used with <code class="code">g#next</code>. Distinct clones of <code class="code">g</code> shouldn't
+be used at the same time (otherwise <code class="code">Failure _</code> will be raised).
+Both the generator and save points are only valid within
+the scope in which <code class="code">f</code> is called.</p></div></div></body></html>

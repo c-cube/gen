@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>GenMList (gen.GenMList)</title><link rel="stylesheet" href="../../odoc.css"/><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="generator" content="doc-ock-html v1.0.0-1-g1fc9bf0"/></head><body><nav id="top"><a href="../index.html">Up</a> &mdash; <span class="package">package <a href="../index.html">gen</a></span></nav><header><h1><span class="keyword">Module</span> <span class="module-path">GenMList</span></h1></header><h2>Efficient Mutable Lists</h2><p>Unrolled lists, append-only, used for storing the content of a generator.</p><p>Example:
+</p><pre><code class="code">      let g = 1 -- 1000 ;;
+      val g : int t = &lt;fun&gt;
+
+      let c = g |&gt; MList.of_gen_lazy |&gt; MList.to_clonable;;
+      val c : int clonable = &lt;obj&gt;
+
+                c#next |&gt; take 500 |&gt; to_list;;
+      - : int list = [1; 2; 3; .....; 500]
+
+      let c' = c#clone ;;
+      val c' : int clonable = &lt;obj&gt;
+
+                 c |&gt; to_list;;
+      - : int list = [501; 502; ....; 1000]
+
+        c'#gen |&gt; to_list;;   (* c consumed, but not c' *)
+      - : int list = [501; 502; ....; 1000]
+
+        c#gen |&gt; to_list;;
+      - : int list = []</code></pre><ul class="at-tag"><li><span class="at-tag since">Since</span>: 0.2.3</li></ul><div class="spec type" id="type-gen"><a href="#type-gen" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a gen</code><code><span class="keyword"> = </span>unit <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> option</code><code></code></div><div class="doc"></div></div><div class="spec type" id="type-clonable"><a href="#type-clonable" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a clonable</code><code><span class="keyword"> = </span>&lt; gen : <span class="type-var">'a</span> <a href="index.html#type-gen">gen</a>; clone : <span class="type-var">'a</span> <a href="index.html#type-clonable">clonable</a>; &gt;</code><code></code></div><div class="doc"></div></div><div class="spec type" id="type-t"><a href="#type-t" class="anchor"></a><div class="def type"><code><span class="keyword">type </span>'a t</code><code></code><code></code></div><div class="doc"><p>An internal append-only storage of elements of type 'a, produced from
+a generator</p></div></div><div class="spec val" id="val-of_gen"><a href="#val-of_gen" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>of_gen : <span class="type-var">'a</span> <a href="index.html#type-gen">gen</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-t">t</a></code></div><div class="doc"><p><code class="code">of_gen g</code> consumes <code class="code">g</code> to build a mlist</p></div></div><div class="spec val" id="val-of_gen_lazy"><a href="#val-of_gen_lazy" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>of_gen_lazy : ?&#8288;max_chunk_size:int <span class="keyword">&#8209;&gt;</span> ?&#8288;caching:bool <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-gen">gen</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-t">t</a></code></div><div class="doc"><p><code class="code">of_gen_lazy g</code> makes a mlist that will read from <code class="code">g</code> as required,
+until <code class="code">g</code> is exhausted. Do not use <code class="code">g</code> directly after this, or
+some elements will be absent from the mlist!</p><ul class="at-tag"><li><span class="at-tag parameter">Parameter</span> <span class="module-path">caching</span>: if true or absent, values are read from the generator
+by chunks of increasing size. If false, values are read one by one.</li><li><span class="at-tag parameter">Parameter</span> <span class="module-path">max_chunk_size</span>: if provided and <code class="code">caching = true</code>,
+sets the (maximal) size of the internal chunks</li></ul></div></div><div class="spec val" id="val-to_gen"><a href="#val-to_gen" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>to_gen : <span class="type-var">'a</span> <a href="index.html#type-t">t</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-gen">gen</a></code></div><div class="doc"><p>Iterate on the mlist. This function can be called many times without
+any problem, the mlist isn't consumable!</p></div></div><div class="spec val" id="val-to_clonable"><a href="#val-to_clonable" class="anchor"></a><div class="def val"><code><span class="keyword">val </span>to_clonable : <span class="type-var">'a</span> <a href="index.html#type-t">t</a> <span class="keyword">&#8209;&gt;</span> <span class="type-var">'a</span> <a href="index.html#type-clonable">clonable</a></code></div><div class="doc"></div></div></body></html>
