@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.5.1
+
+- transition to jbuilder
+
 # 0.5
 
 - fix small problem with safe-string

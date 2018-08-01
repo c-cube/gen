@@ -7,12 +7,16 @@ The library is extensively tested using `qtest`. If you find a bug,
 please report!
 
 The documentation can be found [here](http://c-cube.github.io/gen/)
-the main module is [Gen](http://c-cube.github.io/gen/last/gen/Gen/index.html)
+the main module is [Gen](https://github.com/c-cube/gen/blob/master/src/gen.mli)
 and should suffice for 95% of use cases.
+
+[Changelog](https://github.com/c-cube/gen/blob/master/CHANGELOG.md)
 
 ## Install
 
-    $ opam install gen
+```sh
+$ opam install gen
+```
 
 or, manually, by building the library and running `make install`. Opam is
 recommended, for it keeps the library up-to-date.
@@ -28,15 +32,18 @@ If you have comments, requests, or bugfixes, please share them! :-)
 
 ## Build
 
-There are no dependencies. This should work with OCaml>=3.12.
+There are no dependencies except for `dune` for building. This should work with `OCaml>=4.02`
 
-    $ make
+```sh
+$ make
+```
 
 To build and run tests (requires `oUnit` and `qtest`):
 
-    $ opam install oUnit qtest
-    $ ./configure --enable-tests
-    $ make test
+```sh
+$ opam install oUnit qtest
+$ make test
+```
 
 ## License
 

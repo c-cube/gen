@@ -4,16 +4,16 @@ author: "Simon Cruanes"
 name: "gen"
 version: "0.5.1"
 build: [
-    ["jbuilder" "build" "@install"]
+  ["dune" "build" "@install" "-p" name]
 ]
 build-test: [
-  ["jbuilder" "runtest"]
+  ["dune" "runtest" "-p" name]
 ]
 build-doc: [
-  ["jbuilder" "build" "@doc"]
+  ["dune" "build" "@doc" "-p" name]
 ]
 depends: [
-  "jbuilder" {build}
+  "dune" {build}
   "base-bytes"
   "odoc" {doc}
   "qtest" {test}
