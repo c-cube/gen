@@ -1,0 +1,23 @@
+{
+  "name": "@elliottcable/bs-gen",
+  "version": "0.5.1",
+  "sources": [
+     {
+        "dir": "src",
+        "files": [
+           "gen.ml",
+           "gen_intf.ml",
+           "genM.ml",
+           "genM_intf.ml",
+           "genMList.ml",
+           "genClone.ml"
+        ]
+     }
+  ],
+  "namespace": false,
+  "package-specs": {
+    "module": "commonjs",
+    "in-source": true
+  },
+  "suffix": ".bs.js"
+}
