@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/ELLIOTTCABLE/gen/issues"
   },
-  "homepage": "https://github.com/ELLIOTTCABLE/gen#readme",
+  "homepage": "http://cedeela.fr/~simon/software/gen",
   "dependencies": {
     "bs-platform": "^4.0.2"
   }

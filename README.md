@@ -1,3 +1,34 @@
+`bs-gen`
+----------
+This is c-cube's Gen iterator library for OCaml, cross-compiled to
+JavaScript via [BuckleScript][] (an OCaml-to-JavaScript compiler) for
+[Reason][] (an alternative OCaml syntax targeting that compiler.)
+
+You can safely ignore the installation instructions below when compiling
+to JS. Instead:
+
+1. Install this fork through npm:
+
+        npm install --save @elliottcable/bs-gen
+
+2. Manually add `bs-gen` to your `bsconfig.json`'s `bs-dependencies`:
+
+        "bs-dependencies": [
+          ...
+          "@elliottcable/bs-gen"
+        ],
+
+3. Use `Gen.t`!
+
+Of note, I ran into some type errors when trying to compile with
+`GenLabels` API enabled; thus, the npm version of this library omits
+that entirly. All of the other modules are included, though.
+
+   [BuckleScript]: <https://bucklescript.github.io/>
+   [Reason]: <https://reasonml.github.io/>
+
+#### Original README follows:
+
 # Gen
 
 Iterators for OCaml, both restartable and consumable. The implementation
