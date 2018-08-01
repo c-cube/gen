@@ -6,8 +6,8 @@ keeps a good balance between simplicity and performance.
 The library is extensively tested using `qtest`. If you find a bug,
 please report!
 
-The documentation can be found [here](http://cedeela.fr/~simon/software/gen);
-the main module is [Gen](http://cedeela.fr/~simon/software/gen/Gen.html)
+The documentation can be found [here](http://c-cube.github.io/gen/)
+the main module is [Gen](http://c-cube.github.io/gen/last/gen/Gen/index.html)
 and should suffice for 95% of use cases.
 
 ## Install
