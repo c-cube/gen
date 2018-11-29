@@ -5,7 +5,7 @@ build:
 	@dune build @install
 
 test:
-	@dune runtest --no-buffer
+	@dune runtest --no-buffer --force
 
 clean:
 	@dune clean
