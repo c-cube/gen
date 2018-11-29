@@ -12,6 +12,7 @@ type 'a gen = 'a t
 module type S = Gen_intf.S
 
 (*$inject
+  [@@@ocaml.warning "-26"]
 
   let pint i = string_of_int i
   let pilist l =
