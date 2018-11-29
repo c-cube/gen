@@ -1,0 +1,18 @@
+(rule
+  (targets flambda.flags)
+  (deps (file mkflags.ml))
+  (mode fallback)
+  (action
+    (run ocaml ./mkflags.ml))
+  )
+
+(library
+  (name gen)
+  (public_name gen)
+  (wrapped false)
+  (modules Gen GenLabels GenM GenClone GenMList GenM_intf Gen_intf GenLabels_intf)
+  (flags :standard -w +a-4-42-44-48-50-58-32-60@8 -safe-string -nolabels)
+  (ocamlopt_flags :standard (:include flambda.flags))
+  (libraries bytes)
+  )
+

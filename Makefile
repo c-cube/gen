@@ -2,19 +2,16 @@
 all: build test
 
 build:
-	jbuilder build @install
+	@dune build @install
 
 test:
-	jbuilder runtest --no-buffer
+	@dune runtest --no-buffer
 
 clean:
-	jbuilder clean
+	@dune clean
 
 doc:
-	jbuilder build @doc
-
-push_doc: all doc
-	rsync -tavu gen.docdir/* cedeela.fr:~/simon/root/software/gen/
+	@dune build @doc
 
 VERSION=$(shell awk '/^version:/ {print $$2}' gen.opam)
 
