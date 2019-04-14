@@ -1,5 +1,5 @@
 {
-  "name": "@elliottcable/bs-gen",
+  "name": "bs-gen",
   "version": "0.5.1",
   "description": "Simple, efficient iterators for OCaml",
   "main": "src/gen.bs.js",
@@ -21,12 +21,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ELLIOTTCABLE/gen.git"
+    "url": "git+https://github.com/ELLIOTTCABLE/bs-gen.git"
   },
   "author": "Simon Cruanes <simon.cruanes.2007@m4x.org>",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/ELLIOTTCABLE/gen/issues"
+    "url": "https://github.com/ELLIOTTCABLE/bs-gen/issues"
   },
   "homepage": "http://cedeela.fr/~simon/software/gen",
   "devDependencies": {

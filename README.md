@@ -9,13 +9,13 @@ to JS. Instead:
 
 1. Install this fork through npm:
 
-        npm install --save @elliottcable/bs-gen
+        npm install --save bs-gen
 
 2. Manually add `bs-gen` to your `bsconfig.json`'s `bs-dependencies`:
 
         "bs-dependencies": [
           ...
-          "@elliottcable/bs-gen"
+          "bs-gen"
         ],
 
 3. Use `Gen.t`!
