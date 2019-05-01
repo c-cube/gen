@@ -1,34 +1,3 @@
-`bs-gen`
-----------
-This is c-cube's Gen iterator library for OCaml, cross-compiled to
-JavaScript via [BuckleScript][] (an OCaml-to-JavaScript compiler) for
-[Reason][] (an alternative OCaml syntax targeting that compiler.)
-
-You can safely ignore the installation instructions below when compiling
-to JS. Instead:
-
-1. Install this fork through npm:
-
-        npm install --save bs-gen
-
-2. Manually add `bs-gen` to your `bsconfig.json`'s `bs-dependencies`:
-
-        "bs-dependencies": [
-          ...
-          "bs-gen"
-        ],
-
-3. Use `Gen.t`!
-
-Of note, I ran into some type errors when trying to compile with
-`GenLabels` API enabled; thus, the npm version of this library omits
-that entirly. All of the other modules are included, though.
-
-   [BuckleScript]: <https://bucklescript.github.io/>
-   [Reason]: <https://reasonml.github.io/>
-
-#### Original README follows:
-
 # Gen
 
 Iterators for OCaml, both restartable and consumable. The implementation
@@ -43,7 +12,9 @@ and should suffice for 95% of use cases.
 
 [Changelog](https://github.com/c-cube/gen/blob/master/CHANGELOG.md)
 
-## Install
+## Native install
+
+Installation in a native OCaml project, via [opam](https://opam.ocaml.org/):
 
 ```sh
 $ opam install gen
@@ -51,6 +22,26 @@ $ opam install gen
 
 or, manually, by building the library and running `make install`. Opam is
 recommended, for it keeps the library up-to-date.
+
+## BuckleScript install
+
+Installation in JavaScript, via [BuckleScript](https://bucklescript.github.io/bucklescript/Manual.html),
+in an [npm](https://npmjs.com/) project:
+
+1. Install this package:
+
+   ```sh
+   $ npm install bs-gen
+   ```
+
+2. Manually add `bs-gen` to your `bsconfig.json`'s `bs-dependencies`:
+
+   ```json
+   "bs-dependencies": [
+      ...
+      "bs-gen"
+   ],
+   ```
 
 ## Use
 
