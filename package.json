@@ -21,12 +21,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ELLIOTTCABLE/bs-gen.git"
+    "url": "git+https://github.com/c-cube/gen.git"
   },
-  "author": "Simon Cruanes <simon.cruanes.2007@m4x.org>",
+  "contributors": [
+     "Simon Cruanes <simon.cruanes.2007@m4x.org>",
+     "ELLIOTTCABLE <git@ell.io>"
+  ],
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/ELLIOTTCABLE/bs-gen/issues"
+    "url": "https://github.com/c-cube/gen/issues"
   },
   "homepage": "http://cedeela.fr/~simon/software/gen",
   "devDependencies": {
