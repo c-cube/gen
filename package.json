@@ -1,6 +1,6 @@
 {
   "name": "bs-gen",
-  "version": "0.5.2-pre.1",
+  "version": "0.5.2",
   "description": "Simple, efficient iterators for OCaml",
   "main": "src/gen.bs.js",
   "scripts": {

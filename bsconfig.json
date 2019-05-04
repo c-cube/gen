@@ -1,18 +1,18 @@
 {
   "name": "bs-gen",
-  "version": "0.5.2-pre.1",
+  "version": "0.5.2",
   "sources": [
-     {
-        "dir": "src",
-        "files": [
-           "gen.ml",
-           "gen_intf.ml",
-           "genM.ml",
-           "genM_intf.ml",
-           "genMList.ml",
-           "genClone.ml"
-        ]
-     }
+    {
+      "dir": "src",
+      "files": [
+        "gen.ml",
+        "gen_intf.ml",
+        "genM.ml",
+        "genM_intf.ml",
+        "genMList.ml",
+        "genClone.ml"
+      ]
+    }
   ],
   "namespace": false,
   "package-specs": {
