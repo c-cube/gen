@@ -1,0 +1,41 @@
+{
+  "name": "bs-gen",
+  "version": "0.5.2",
+  "description": "Simple, efficient iterators for OCaml",
+  "main": "src/gen.bs.js",
+  "scripts": {
+    "prepare": "npm run clean && bsb -make-world",
+    "clean": "bsb -clean-world",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "BuckleScript",
+    "ReasonML",
+    "OCaml",
+    "generator",
+    "tool",
+    "coro",
+    "coroutine",
+    "async",
+    "iterator"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c-cube/gen.git"
+  },
+  "contributors": [
+     "Simon Cruanes <simon.cruanes.2007@m4x.org>",
+     "ELLIOTTCABLE <git@ell.io>"
+  ],
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/c-cube/gen/issues"
+  },
+  "homepage": "http://cedeela.fr/~simon/software/gen",
+  "devDependencies": {
+    "bs-platform": "^4.0.3"
+  },
+  "peerDependencies": {
+    "bs-platform": ">=4.0.0"
+  }
+}

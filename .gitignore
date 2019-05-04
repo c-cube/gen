@@ -11,3 +11,10 @@ setup.data
 qtest
 .merlin
 *.install
+
+# BuckleScript
+node_modules
+lib/bs
+lib/ocaml
+*.bs.js
+bs-gen-*.tgz

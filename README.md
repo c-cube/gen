@@ -12,7 +12,9 @@ and should suffice for 95% of use cases.
 
 [Changelog](https://github.com/c-cube/gen/blob/master/CHANGELOG.md)
 
-## Install
+## Native install
+
+Installation in a native OCaml project, via [opam](https://opam.ocaml.org/):
 
 ```sh
 $ opam install gen
@@ -20,6 +22,26 @@ $ opam install gen
 
 or, manually, by building the library and running `make install`. Opam is
 recommended, for it keeps the library up-to-date.
+
+## BuckleScript install
+
+Installation in JavaScript, via [BuckleScript](https://bucklescript.github.io/bucklescript/Manual.html),
+in an [npm](https://npmjs.com/) project:
+
+1. Install this package:
+
+   ```sh
+   $ npm install bs-gen
+   ```
+
+2. Manually add `bs-gen` to your `bsconfig.json`'s `bs-dependencies`:
+
+   ```json
+   "bs-dependencies": [
+      ...
+      "bs-gen"
+   ],
+   ```
 
 ## Use
 

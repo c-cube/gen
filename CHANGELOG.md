@@ -1,7 +1,13 @@
 # Changelog
 
+# 0.5.2
+
+- explicitly support BuckleScript, and publish to npm as bs-gen
+- transition to updated dune (jbuilder), and opam 2.0
+
 # 0.5.1
 
+- refactor to use match-with-exception from OCaml 4.02
 - transition to jbuilder
 
 # 0.5
