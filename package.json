@@ -31,7 +31,7 @@
   "bugs": {
     "url": "https://github.com/c-cube/gen/issues"
   },
-  "homepage": "http://cedeela.fr/~simon/software/gen",
+  "homepage": "http://c-cube.github.io/gen/",
   "devDependencies": {
     "bs-platform": "^4.0.3"
   },
