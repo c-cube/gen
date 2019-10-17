@@ -13,7 +13,6 @@ depends: [
   "dune" {build}
   "base-bytes"
   "odoc" {with-doc}
-  "qtest" {with-test}
   "qcheck" {with-test}
   "qtest" {with-test}
 ]
