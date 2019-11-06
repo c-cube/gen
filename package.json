@@ -8,6 +8,13 @@
     "clean": "bsb -clean-world",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "bsconfig.json",
+    "src",
+    "!**/dune",
+    "!**/dune-project",
+    "!**/.merlin"
+  ],
   "keywords": [
     "BuckleScript",
     "ReasonML",
