@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.5.3
+
+- fix npm-package contents to actually include compiled output. (oops!)
+
 # 0.5.2
 
 - explicitly support BuckleScript, and publish to npm as bs-gen
