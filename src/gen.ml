@@ -1902,7 +1902,7 @@ module Restart = struct
       match !cached with
       | Some mlist -> GenMList.to_gen mlist
       | None ->
-          let mlist = GenMList.of_gen_lazy ?caching ?max_chunk_size g in
+          let mlist = GenMList.of_gen_lazy ?max_chunk_size ?caching g in
           cached := Some mlist;
           GenMList.to_gen mlist
 end
@@ -1936,7 +1936,7 @@ let persistent gen =
 *)
 
 let persistent_lazy ?caching ?max_chunk_size gen =
-  let l = GenMList.of_gen_lazy ?caching ?max_chunk_size gen in
+  let l = GenMList.of_gen_lazy ?max_chunk_size ?caching gen in
   fun () -> GenMList.to_gen l
 
 (*$T
