@@ -7,6 +7,7 @@ type 'a gen = unit -> 'a option
 
 class virtual ['a] t = object
   method virtual gen : 'a gen  (** Generator of values tied to this copy *)
+
   method virtual clone : 'a t  (** Clone the internal state *)
 end
 (** A generator that can be cloned as many times as required. *)
