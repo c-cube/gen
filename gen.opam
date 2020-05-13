@@ -5,9 +5,9 @@ author: [ "Simon Cruanes" "ELLIOTTCABLE" ]
 name: "gen"
 version: "0.5.3"
 build: [
-  ["dune" "build" "@install" "-p" name]
-  ["dune" "runtest" "-p" name] {with-test}
-  ["dune" "build" "@doc" "-p" name] {with-doc}
+  ["dune" "build" "@install" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 depends: [
   "dune" {>= "1.1"}
