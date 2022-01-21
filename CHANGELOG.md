@@ -1,20 +1,26 @@
 # Changelog
 
-# 0.5.3
+## 1.0
+
+- add `{of_seq,to_iter,persistent_to_seq,persistent_lazy_to_seq}`
+- depend on seq
+- manual use of qtest, remove the qtestlib backend (more robust)
+
+## 0.5.3
 
 - fix npm-package contents to actually include compiled output. (oops!)
 
-# 0.5.2
+## 0.5.2
 
 - explicitly support BuckleScript, and publish to npm as bs-gen
 - transition to updated dune (jbuilder), and opam 2.0
 
-# 0.5.1
+## 0.5.1
 
 - refactor to use match-with-exception from OCaml 4.02
 - transition to jbuilder
 
-# 0.5
+## 0.5
 
 - fix small problem with safe-string
 - move to safe-string, for compatibility with 4.06.0
@@ -22,7 +28,7 @@
 - rename parameter of `int_range` from `by` to `step`
 - add `?(by=1)` to `int_range`
 
-# 0.4
+## 0.4
 
 - update `GenLabels` with missing functions
 - add `Gen.peek_n`
@@ -36,7 +42,7 @@
   * add ocp-indent file, update header, reindent files
   * move code to src/
 
-# 0.3
+## 0.3
 
 - add `Gen.return`
 - fix overflow in `Gen.flat_map`; add regression test
@@ -46,7 +52,7 @@
 - add `Gen.IO.{with_lines, write_lines}`
 - update benchmarks to use Benchmark.Tree
 
-# 0.2.4
+## 0.2.4
 
 - `GenLabels` module
 - `fold_while` function
@@ -54,7 +60,7 @@
 - updated doc to make clear that combinators consume their generator argument
 - add missing @since; expose infix operators
 
-# 0.2.3
+## 0.2.3
 
 - updated .mli to replace "enum" with "gen"
 - `Gen.persistent_lazy` now exposes caching parameters related to `GenMList.of_gen_lazy`
@@ -67,7 +73,7 @@
 - add `permutations_heap` for array-based permutations; add a corresponding benchmark to compare
 - license file
 
-# 0.2.2
+## 0.2.2
 
 - do not depend on qtest
 - better combinatorics (`permutations`, `power_set`, `combinations`)

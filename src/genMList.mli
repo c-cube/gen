@@ -60,6 +60,6 @@ val to_gen : 'a t -> 'a gen
 
 val to_seq : 'a t -> 'a Seq.t
 (** Iterate on the mlist using the standard functional iterators.
-    @since NEXT_RELEASE *)
+    @since 1.0 *)
 
 val to_clonable : 'a t -> 'a clonable
