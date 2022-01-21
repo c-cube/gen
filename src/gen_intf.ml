@@ -8,6 +8,7 @@
     explicitely that they use ['a gen] (transient generators). *)
 
 type 'a gen = unit -> 'a option
+type 'a iter = ('a -> unit) -> unit
 
 module type S = sig
   type 'a t
@@ -362,5 +363,11 @@ module type S = sig
   val pp : ?start:string -> ?stop:string -> ?sep:string -> ?horizontal:bool ->
     (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
   (** Pretty print the content of the generator on a formatter. *)
+
+  val of_seq : 'a Seq.t -> 'a t
+  (** @since 1.0 *)
+
+  val to_iter : 'a t -> 'a iter
+  (** @since 1.0 *)
 end
 

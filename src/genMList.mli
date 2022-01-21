@@ -32,6 +32,7 @@
     @since 0.2.3 *)
 
 type 'a gen = unit -> 'a option
+type 'a iter = ('a -> unit) -> unit
 type 'a clonable = <
   gen : 'a gen;  (** Generator of values tied to this copy *)
   clone : 'a clonable;  (** Clone the internal state *)
@@ -56,5 +57,9 @@ val of_gen_lazy : ?max_chunk_size:int -> ?caching:bool -> 'a gen -> 'a t
 val to_gen : 'a t -> 'a gen
 (** Iterate on the mlist. This function can be called many times without
     any problem, the mlist isn't consumable! *)
+
+val to_seq : 'a t -> 'a Seq.t
+(** Iterate on the mlist using the standard functional iterators.
+    @since NEXT_RELEASE *)
 
 val to_clonable : 'a t -> 'a clonable

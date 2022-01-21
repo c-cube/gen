@@ -1,8 +1,6 @@
 
 (* This file is free software, part of gen. See file "license" for more details. *)
 
-(** {1 Restartable generators} *)
-
 (** {2 Global type declarations} *)
 
 type 'a t = unit -> 'a option
@@ -1596,6 +1594,15 @@ let to_string s =
   to_buffer buf s;
   Buffer.contents buf
 
+let of_seq seq : _ t =
+  let seq = ref seq in
+  fun () ->
+    match !seq () with
+    | Seq.Nil -> None
+    | Seq.Cons (x,tl) ->
+        seq := tl;
+        Some x
+
 let rand_int i =
   repeatedly (fun () -> Random.int i)
 
@@ -1876,6 +1883,8 @@ module Restart = struct
 
   let to_buffer buf s = to_buffer buf (s ())
 
+  let to_iter s yield = iter yield s
+
   let rand_int i () = rand_int i
 
   let int_range ?step i j () = int_range ?step i j
@@ -1905,6 +1914,9 @@ module Restart = struct
           let mlist = GenMList.of_gen_lazy ?max_chunk_size ?caching g in
           cached := Some mlist;
           GenMList.to_gen mlist
+
+  let of_seq seq : _ t =
+    fun () -> of_seq seq
 end
 
 (** {2 Generator functions} *)
@@ -1916,11 +1928,39 @@ let persistent gen =
   let l = GenMList.of_gen gen in
   fun () -> GenMList.to_gen l
 
+(*$inject
+  let rec seq_take i seq () =
+    if i=0 then Seq.Nil
+    else match seq() with
+      | Seq.Nil -> Seq.Nil
+      | Seq.Cons (x,tl) -> Seq.Cons (x, seq_take (i-1) tl)
+
+  let seq_to_list seq =
+    let rec aux acc s = match s() with
+      | Seq.Nil -> List.rev acc
+      | Seq.Cons (x,tl) -> aux (x::acc) tl
+    in
+    aux [] seq
+*)
+
 (*$T
   let g = 1--10 in let g' = persistent g in \
     Restart.to_list g' = Restart.to_list g'
   let g = 1--10 in let g' = persistent g in \
     Restart.to_list g' = [1;2;3;4;5;6;7;8;9;10]
+*)
+
+let persistent_to_seq gen : _ Seq.t =
+  let l = GenMList.of_gen gen in
+  GenMList.to_seq l
+
+(*$T
+  let g = 1--100_000 in \
+  let seq = persistent_to_seq g in \
+    (seq |> seq_take 100 |> seq_to_list = (1--100 |> to_list)) && \
+    (seq |> seq_take 200 |> seq_to_list = (1--200 |> to_list)) && \
+    (seq |> seq_take 80_000 |> seq_to_list = (1--80_000 |> to_list)) && \
+    (seq |> seq_take 50_000 |> seq_to_list = (1--50_000 |> to_list))
 *)
 
 (*$R
@@ -1944,6 +1984,21 @@ let persistent_lazy ?caching ?max_chunk_size gen =
     (g' () |> take 100 |> to_list = (1--100 |> to_list)) && \
     (g' () |> take 200 |> to_list = (1--200 |> to_list))
 *)
+
+let persistent_lazy_to_seq ?caching ?max_chunk_size gen : _ Seq.t =
+  let l = GenMList.of_gen_lazy ?max_chunk_size ?caching gen in
+  GenMList.to_seq l
+
+(*$T
+  let g = 1--1_000_000_000 in \
+  let seq = persistent_lazy_to_seq g in \
+    (seq |> seq_take 100 |> seq_to_list = (1--100 |> to_list)) && \
+    (seq |> seq_take 200 |> seq_to_list = (1--200 |> to_list)) && \
+    (seq |> seq_take 80_000 |> seq_to_list = (1--80_000 |> to_list)) && \
+    (seq |> seq_take 50_000 |> seq_to_list = (1--50_000 |> to_list))
+*)
+
+let to_iter g yield = iter yield g
 
 let peek g =
   let state = ref `Start in

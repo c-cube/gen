@@ -66,7 +66,8 @@ module Restart : sig
 
   val lift2 : ('a gen -> 'b gen -> 'c) -> 'a t -> 'b t -> 'c
 
-  val of_gen : ?caching:bool -> ?max_chunk_size:int ->
+  val of_gen :
+    ?caching:bool -> ?max_chunk_size:int ->
     'a gen -> 'a t
   (** Use {!persistent_lazy} to convert a one-shot generator into a
       restartable one.
@@ -81,13 +82,24 @@ val persistent : 'a t -> 'a Restart.t
     on it several times later. If possible, consider using combinators
     from {!Restart} directly instead. *)
 
-val persistent_lazy : ?caching:bool -> ?max_chunk_size:int ->
+val persistent_lazy :
+  ?caching:bool -> ?max_chunk_size:int ->
   'a t -> 'a Restart.t
 (** Same as {!persistent}, but consumes the generator on demand (by chunks).
     This allows to make a restartable generator out of an ephemeral one,
     without paying a big cost upfront (nor even consuming it fully).
     Optional parameters: see {!GenMList.of_gen_lazy}.
     @since 0.2.2 *)
+
+val persistent_to_seq : 'a t -> 'a Seq.t
+(** Same as {!persistent}, but returns a standard Seq.
+    @since 1.0 *)
+
+val persistent_lazy_to_seq :
+  ?caching:bool -> ?max_chunk_size:int ->
+  'a t -> 'a Seq.t
+(** Same as {!persistent_lazy}, but returns a standard Seq.
+    @since 1.0 *)
 
 val peek : 'a t -> ('a * 'a option) t
 (** [peek g] transforms the generator [g] into a generator
