@@ -20,10 +20,8 @@ update_next_tag:
 	find -name '*.ml' -or -name '*.mli' | xargs sed -i "s/NEXT_VERSION/$(VERSION)/g"
 	find -name '*.ml' -or -name '*.mli' | xargs sed -i "s/NEXT_RELEASE/$(VERSION)/g"
 
+WATCH?=@all
 watch:
-	while find src/ bench/ -print0 | xargs -0 inotifywait -e delete_self -e modify ; do \
-		echo "============ at `date` ==========" ; \
-		make ; \
-	done
+	@dune build $(WATCH) -w
 
-.PHONY: update_next_tag release
+.PHONY: update_next_tag 
