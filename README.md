@@ -1,4 +1,4 @@
-# Gen [![build status](https://travis-ci.org/c-cube/gen.svg?branch=master)](https://travis-ci.org/c-cube/gen)
+# Gen [![build](https://github.com/c-cube/gen/actions/workflows/main.yml/badge.svg)](https://github.com/c-cube/gen/actions/workflows/main.yml)
 
 Iterators for OCaml, both restartable and consumable. The implementation
 keeps a good balance between simplicity and performance.
