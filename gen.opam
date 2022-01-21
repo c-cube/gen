@@ -16,6 +16,7 @@ depends: [
   "odoc" {with-doc}
   "qcheck" {with-test}
   "qtest" {with-test}
+  "ounit2" {with-test}
   "ocaml" { >= "4.03.0" }
 ]
 tags: [ "gen" "iterator" "iter" "fold" ]
