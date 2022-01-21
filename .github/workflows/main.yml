@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          #- macos-latest # too slow
           - ubuntu-latest
           - windows-latest
         ocaml-compiler:
