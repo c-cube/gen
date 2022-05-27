@@ -5,7 +5,7 @@
 
     The signature {!S} abstracts on a type ['a t], where the [t] can be
     the type of transient or restartable generators. Some functions specify
-    explicitely that they use ['a gen] (transient generators). *)
+    explicitly that they use ['a gen] (transient generators). *)
 
 type 'a gen = unit -> 'a option
 type 'a iter = ('a -> unit) -> unit
