@@ -1004,7 +1004,7 @@ let round_robin ?(n=2) gen =
   | [a;b] ->
     OUnit.assert_equal [1;3;5;7;9] (Gen.to_list a);
     OUnit.assert_equal [2;4;6;8;10] (Gen.to_list b)
-  | _ -> OUnit.assert_failure "wrong list lenght"
+  | _ -> OUnit.assert_failure "wrong list length"
 *)
 
 (*$R
