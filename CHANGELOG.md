@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1
+
+- remove deps on bytes and dune-configurator (@nojb)
+
 ## 1.0
 
 - add `{of_seq,to_iter,persistent_to_seq,persistent_lazy_to_seq}`
