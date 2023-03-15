@@ -12,8 +12,6 @@ build: [
 ]
 depends: [
   "dune" {>= "1.1"}
-  "dune-configurator"
-  "base-bytes"
   "seq"
   "odoc" {with-doc}
   "qcheck" {with-test}

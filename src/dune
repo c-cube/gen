@@ -1,7 +1,6 @@
 (executable
  (name mkshims)
- (modules mkshims)
- (libraries dune.configurator))
+ (modules mkshims))
 
 (rule
  (targets GenShims_.ml)
@@ -21,5 +20,4 @@
   (modules Gen GenLabels GenM GenClone GenMList GenM_intf Gen_intf GenLabels_intf GenShims_)
   (flags :standard -warn-error -a+8 -safe-string -nolabels)
   (ocamlopt_flags :standard (:include flambda.flags))
-  (libraries bytes seq))
-
+  (libraries seq))
