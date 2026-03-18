@@ -2,10 +2,8 @@ name: build
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
-    branches:
-      - master
 jobs:
   run:
     name: Build
@@ -18,10 +16,11 @@ jobs:
         ocaml-compiler:
           - 4.03
           - 4.14
+          - 5.04
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@main
-    - uses: ocaml/setup-ocaml@v2
+    - uses: ocaml/setup-ocaml@v3
       with:
         ocaml-compiler: ${{ matrix.ocaml-compiler }}
     - run: opam pin -n .

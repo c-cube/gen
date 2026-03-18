@@ -13,9 +13,9 @@ jobs:
       - uses: actions/checkout@main
 
       - name: Use OCaml
-        uses: ocaml/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: '4.13.x'
+          ocaml-compiler: '4.14.x'
 
       - name: Pin
         run: opam pin -n .
@@ -35,4 +35,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_build/default/_doc/_html/
           destination_dir: dev
-          enable_jekyll: true
+          enable_jekyll: false
