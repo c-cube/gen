@@ -112,7 +112,7 @@ let rec fold f acc gen =
   | Some x -> fold f (f acc x) gen
 
 (*$Q
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     of_list l |> fold (fun l x->x::l) [] = List.rev l)
 *)
 
@@ -184,7 +184,7 @@ let length gen =
   fold (fun acc _ -> acc + 1) 0 gen
 
 (*$Q
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     of_list l |> length = List.length l)
 *)
 
@@ -249,7 +249,7 @@ let map f gen =
       | Some x -> Some (f x)
 
 (*$Q map
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     let f x = x*2 in \
     of_list l |> map f |> to_list = List.map f l)
 *)
@@ -267,7 +267,7 @@ let mapi f =
   map cnt_map
 
 (*$Q mapi
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     let len = List.length l in \
     let f i x = i+x+1 in \
     of_list l |> mapi f |> to_list |> fun l' -> List.fold_left (+) 0 l'= \
@@ -291,7 +291,7 @@ let append gen1 gen2 =
     else gen2()
 
 (*$Q
-  (Q.pair (Q.list Q.small_int)(Q.list Q.small_int)) (fun (l1,l2) -> \
+  (Q.pair (Q.list Q.nat_small)(Q.list Q.nat_small)) (fun (l1,l2) -> \
     append (of_list l1) (of_list l2) |> to_list = l1 @ l2)
 *)
 
@@ -339,7 +339,7 @@ let flat_map f next_elem =
   next
 
 (*$Q flat_map
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     let f x = of_list [x;x*2] in \
     eq (map f (of_list l) |> flatten) (flat_map f (of_list l)))
 *)
@@ -373,7 +373,7 @@ let take n gen =
       | (Some _) as x -> incr count; x
 
 (*$Q
-  (Q.pair Q.small_int (Q.list Q.small_int)) (fun (n,l) -> \
+  (Q.pair Q.nat_small (Q.list Q.nat_small)) (fun (n,l) -> \
     of_list l |> take n |> length = GenShims_.Stdlib.min n (List.length l))
 *)
 
@@ -398,7 +398,7 @@ let drop n gen =
     end
 
 (*$Q
-  (Q.pair Q.small_int (Q.list Q.small_int)) (fun (n,l) -> \
+  (Q.pair Q.nat_small (Q.list Q.nat_small)) (fun (n,l) -> \
     let g1,g2 = take n (of_list l), drop n (of_list l) in \
     append g1 g2 |> to_list = l)
 *)
@@ -583,7 +583,7 @@ let unzip gen =
 *)
 
 (*$Q
-  (Q.list (Q.pair Q.small_int Q.small_int)) (fun l -> \
+  (Q.list (Q.pair Q.nat_small Q.nat_small)) (fun l -> \
     of_list l |> unzip |> (fun (x,y) -> to_list x,to_list y) = \
     List.split l)
 *)
@@ -662,7 +662,7 @@ let eq ?(eq=(=)) gen1 gen2 =
   check ()
 
 (*$Q
-  (Q.pair (Q.list Q.small_int)(Q.list Q.small_int)) (fun (l1,l2) -> \
+  (Q.pair (Q.list Q.nat_small)(Q.list Q.nat_small)) (fun (l1,l2) -> \
     eq (of_list l1)(of_list l2) = (l1 = l2))
 *)
 
@@ -680,7 +680,7 @@ let lexico ?(cmp=GenShims_.Stdlib.compare) gen1 gen2 =
 let compare ?cmp gen1 gen2 = lexico ?cmp gen1 gen2
 
 (*$Q
-  (Q.pair (Q.list Q.small_int)(Q.list Q.small_int)) (fun (l1,l2) -> \
+  (Q.pair (Q.list Q.nat_small)(Q.list Q.nat_small)) (fun (l1,l2) -> \
     let sign x = if x < 0 then -1 else if x=0 then 0 else 1 in \
     sign (compare (of_list l1)(of_list l2)) = sign (GenShims_.Stdlib.compare l1 l2))
 *)
@@ -752,7 +752,7 @@ let zip_with f a b =
 let zip a b = zip_with (fun x y -> x,y) a b
 
 (*$Q
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     zip_with (fun x y->x,y) (of_list l) (of_list l) \
       |> unzip |> fst |> to_list = l)
 *)
@@ -1540,7 +1540,7 @@ let to_rev_list gen =
   fold (fun acc x -> x :: acc) [] gen
 
 (*$Q
-  (Q.list Q.small_int) (fun l -> \
+  (Q.list Q.nat_small) (fun l -> \
     to_rev_list (of_list l) = List.rev l)
 *)
 
@@ -1572,7 +1572,7 @@ let of_array ?(start=0) ?len a =
     else (let x = a.(!i) in incr i; Some x)
 
 (*$Q
-  (Q.array Q.small_int) (fun a -> \
+  (Q.array Q.nat_small) (fun a -> \
     of_array a |> to_array = a)
 *)
 
@@ -1663,7 +1663,7 @@ let unlines g =
         st := `Consume (s, i+1); Some s.[i]
 
 (*$Q
-  Q.printable_string (fun s -> \
+  Q.string_printable (fun s -> \
     of_string s |> lines |> unlines |> to_string |> String.trim = String.trim s)
 *)
 
@@ -2072,7 +2072,7 @@ let peek_n n g =
 *)
 
 (*$QR
-  Q.(list small_int)
+  Q.(list nat_small)
     (fun l ->
       let l' =
         of_list l
