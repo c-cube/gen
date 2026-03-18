@@ -1,31 +1,39 @@
 name: build
+
 on:
   push:
     branches:
       - main
   pull_request:
+
 jobs:
-  run:
-    name: Build
+  build:
+    name: build
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         os:
-          - macos-latest # too slow
           - ubuntu-latest
-          - windows-latest
         ocaml-compiler:
-          - 4.03
-          - 4.14
-          - 5.04
+          - '4.08'
+          - '5.4'
+
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@main
-    - uses: ocaml/setup-ocaml@v3
-      with:
-        ocaml-compiler: ${{ matrix.ocaml-compiler }}
-    - run: opam pin -n .
-    - run: opam depext -yt gen
-    - run: opam install -t . --deps-only
-    - run: opam exec -- dune build
-    - run: opam exec -- dune runtest
-      if: ${{ matrix.os == 'ubuntu-latest'}}
+      - uses: actions/checkout@main
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          dune-cache: true
+
+      - name: Install dependencies
+        run: opam install . --deps-only --with-test
+
+      - name: Build
+        run: opam exec -- dune build @install
+
+      - name: Run tests
+        run: opam exec -- dune runtest --force
+

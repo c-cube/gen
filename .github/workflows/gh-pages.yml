@@ -3,7 +3,7 @@ name: github pages
 on:
   push:
     branches:
-      - master  # Set a branch name to trigger deployment
+      - main
 
 jobs:
   deploy:
@@ -15,18 +15,13 @@ jobs:
       - name: Use OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: '4.14.x'
+          ocaml-compiler: '5.4'
+          dune-cache: true
 
-      - name: Pin
-        run: opam pin -n .
+      - name: Install dependencies
+        run: opam install . --deps-only --with-doc
 
-      - name: Depext
-        run: opam depext -yt gen
-
-      - name: Deps
-        run: opam install -d . --deps-only
-
-      - name: Build
+      - name: Build doc
         run: opam exec -- dune build @doc
 
       - name: Deploy
@@ -34,5 +29,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_build/default/_doc/_html/
-          destination_dir: dev
+          destination_dir: .
           enable_jekyll: false
