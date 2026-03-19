@@ -14,9 +14,7 @@ depends: [
   "dune" {>= "1.1"}
   "seq"
   "odoc" {with-doc}
-  "qcheck" {with-test & >= "0.90" }
-  "qtest" {with-test}
-  "ounit2" {with-test}
+  "qcheck-core" {with-test & >= "0.90"}
   "ocaml" { >= "4.03.0" }
 ]
 tags: [ "gen" "iterator" "iter" "fold" ]

@@ -24,4 +24,4 @@ WATCH?=@all
 watch:
 	@dune build $(WATCH) -w
 
-.PHONY: update_next_tag 
+.PHONY: update_next_tag test

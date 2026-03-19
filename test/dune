@@ -1,0 +1,3 @@
+(test
+ (name t)
+ (libraries gen gen_testlib))

@@ -1,0 +1,4 @@
+(library
+ (name gen_testlib)
+ (synopsis "Test library")
+ (libraries qcheck-core unix))
